@@ -26,11 +26,10 @@ Do every step in order. Do not skip any step.
 ## Step 1 — Read All Context
 
 Before writing any code, read:
-- plan.md
-- @agent.md
-- @design.md
 - /reference/azure-endpoint.md
 - All files in /specs/
+- refrence/design.md
+- skills
 
 ---
 
