@@ -81,5 +81,5 @@ graph TD
 - [x] [task-11-chat-components](./tasks/task-11-chat-components.md) — Chat UI components and ChatContext
 
 ### Wave 4
-- [ ] [task-12-dashboard-integration](./tasks/task-12-dashboard-integration.md) — Wire all contexts and render complete dashboard
-- [ ] [task-13-azure-ai-integration](./tasks/task-13-azure-ai-integration.md) — Live Azure AI Foundry calls and contract text injection
+- [x] [task-12-dashboard-integration](./tasks/task-12-dashboard-integration.md) — Wire all contexts and render complete dashboard
+- [x] [task-13-azure-ai-integration](./tasks/task-13-azure-ai-integration.md) — Live Azure AI Foundry calls and contract text injection
