@@ -24,7 +24,7 @@ Read @design.md for all UI decisions including colors, typography, layout dimens
 - Never hardcode any keys or credentials
 - User must run az login before starting the app
 - Always send contractText and userMessage together
-- Full endpoint details are in /reference/azure-endpoint.md
+- Full endpoint details are in /knowledge/azure-endpoint.md
 
 ## File Parsing Rules
 - Accept .pdf and .docx files only

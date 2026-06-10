@@ -1,9 +1,8 @@
 ---
 name: create-spec
 description: >
-  Generates detailed spec files for the legal contract review app
-  using templates from the reference folder.
-  Use this skill whenever the user asks to:
+  Generates detailed spec files for any app based on the planning document
+  at /blueprint/app-plan.md. Use this skill whenever the user asks to:
   - Generate specs
   - Create spec files
   - Use the specs skill
@@ -14,8 +13,8 @@ description: >
 
 # Create Spec Skill
 
-Your job is to read the planning file and generate one spec file per
-feature using the templates in the reference folder.
+Your job is to read the planning document and generate one spec file per
+feature using the templates in the reference folder as structural guides.
 
 Do every step in order. Do not skip any step.
 
@@ -25,7 +24,7 @@ Do every step in order. Do not skip any step.
 
 Before writing anything, read these files:
 - @skills/rules/rules.md
-- refrence/design.md
+- @skills/design/design.md
 - /blueprint/app-plan.md
 - All templates in the reference folder
 
@@ -34,7 +33,7 @@ app-plan.md not found. Please run "use planning skill" first.
 
 ---
 
-## Step 2 — Create /specs folder
+## Step 2 — Create /specs Folder
 
 Create a /specs folder in the project root if it does not exist.
 
@@ -42,18 +41,26 @@ Create a /specs folder in the project root if it does not exist.
 
 ## Step 3 — Generate Spec Files
 
-Using the templates in the reference folder and the plan in
-/blueprint/app-plan.md, generate these files in /specs:
+Read /blueprint/app-plan.md and identify all distinct features and modules
+described in the plan.
 
-- specs/database.md — use reference/database-spec-template.md
-- specs/auth.md — use reference/auth-spec-template.md
-- specs/dashboard.md — use reference/dashboard-spec-template.md
-- specs/chat.md — use reference/chat-spec-template.md
-- specs/file-upload.md — use reference/file-upload-spec-template.md
-- specs/azure-integration.md — use reference/azure-integration-spec-template.md
-- specs/feedback.md — use reference/feedback-spec-template.md
+For each feature:
+1. Pick the closest matching template from the reference folder as a
+   structural guide (auth → auth-spec-template, database → database-spec-template,
+   dashboard/layout → dashboard-spec-template, chat/messaging →
+   chat-spec-template, AI/external API → ai-integration-spec-template,
+   file handling → file-upload-spec-template, feedback → feedback-spec-template).
+   For features with no close match, use the closest template as a structural
+   reference and adapt the sections to fit.
+2. Generate one spec file in /specs/ named after the feature
+   (e.g. specs/auth.md, specs/payments.md, specs/notifications.md).
+3. Fill every section of the template with details from /blueprint/app-plan.md.
+   Do not invent features or details that are not in the plan.
+   Do not leave any section empty — if the plan is silent on a section,
+   derive it from context or note "to be determined".
 
-Fill each template with details from /blueprint/app-plan.md.
+The number and names of spec files depend entirely on the plan.
+Do not assume a fixed set of features.
 
 ---
 
@@ -61,7 +68,8 @@ Fill each template with details from /blueprint/app-plan.md.
 
 Tell the user:
 All spec files have been generated in /specs based on /blueprint/app-plan.md.
-Ready for implementation planning. Say "use planning skill" to continue.
+List the files created. Then say: Ready for implementation planning.
+Say "use planning skill" to continue.
 
 ---
 
@@ -69,3 +77,4 @@ Ready for implementation planning. Say "use planning skill" to continue.
 - Always base spec content on /blueprint/app-plan.md — do not invent features
 - Fill every section of each template — do not leave any section empty
 - Do not write any code — specs are documentation only
+- Templates are structural guides only — adapt section names if needed

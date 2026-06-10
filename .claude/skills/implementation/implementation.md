@@ -26,7 +26,7 @@ Do every step in order. Do not skip any step.
 ## Step 1 — Read All Context
 
 Before writing any code, read:
-- /reference/azure-endpoint.md
+- /knowledge/azure-endpoint.md
 - All files in /specs/
 - refrence/design.md
 - skills
