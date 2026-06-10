@@ -1,10 +1,10 @@
-# LexAI — Legal Contract Review App
+# AI Document Assistant App
 ## Product Requirements Document
 
 **Date:** June 10, 2026
 **Author:** Product Team
 **Status:** Draft
-**Version:** 1.0
+**Version:** 1.1
 
 ---
 
@@ -12,47 +12,47 @@
 
 ### What problem is this solving?
 
-Reviewing legal contracts is time-consuming, error-prone, and expensive for small and mid-size businesses that lack in-house legal teams. A single missed clause — around indemnification, auto-renewal, or liability limits — can expose a business to significant financial or legal risk. Today, most SMBs either pay expensive lawyers for every review or rely on untrained staff to skim contracts, both of which are inefficient and inadequate.
+Analysing and extracting insight from documents is time-consuming, error-prone, and expensive for individuals and teams who lack specialised expertise. A single missed detail — in a policy, report, contract, manual, or research paper — can lead to bad decisions, wasted effort, or missed risk. Today, most users either pay experts for every review or rely on untrained staff to skim documents manually — both of which are inefficient and inadequate.
 
 ### Who are you solving this problem for?
 
-**Primary persona:** Operations Manager or Business Owner at an SMB (10–200 employees) who signs vendor, employment, or partnership contracts regularly but has no in-house legal counsel.
+**Primary persona:** A knowledge worker or team lead (at a business of any size) who regularly needs to understand, extract, or act on information inside documents — but lacks the time, expertise, or budget to do so thoroughly.
 
 Key characteristics:
-- Industry: Professional services, SaaS, consulting, retail, logistics
-- Role: Ops lead, founder, procurement manager
-- Behaviour: Reviews 5–20 contracts per month; current process involves emailing a lawyer or skimming the document manually
-- Pain: Spends 1–3 hours per contract review; misses non-obvious risks; pays $300–$700/hr for outside counsel on routine reviews
+- Industry: Any — professional services, SaaS, consulting, research, healthcare, logistics
+- Role: Operations, procurement, research, compliance, product, legal, finance
+- Behaviour: Reviews 5–20 documents per month; current process involves skimming manually or forwarding to a specialist
+- Pain: Spends 1–3 hours per document; misses non-obvious details; pays specialist rates for routine analysis
 
-**Secondary persona:** In-house paralegal or legal ops specialist at a mid-market company who manages high contract volume and needs AI assistance to triage and prioritise.
+**Secondary persona:** A specialist (analyst, paralegal, researcher, compliance officer) at a larger organisation who manages high document volume and needs AI assistance to triage and prioritise.
 
 ### Why is this problem worth solving?
 
-- **Quantified pain:** According to the World Commerce & Contracting Association (2019), poor contract management costs businesses an average of 9% of annual revenue. For a $2M SMB, that's $180,000/year in leakage.
-- **Market gap:** Generic LLM tools like ChatGPT require manual copy-paste, lack document context management, have no session history, and provide no structured clause analysis. Existing vertical tools (Kira, Luminance) are priced for large enterprise (>$50k/year), leaving the SMB and mid-market segment underserved.
-- **MOAT:** LexAI's defensibility rests on three pillars:
+- **Quantified pain:** Knowledge workers spend an average of 2.5 hours per day searching for and reading documents (IDC, 2023). AI-assisted analysis can reduce document review time by 60–80%.
+- **Market gap:** Generic LLM tools like ChatGPT require manual copy-paste, lack document context management, have no session history, and provide no structured output. Existing vertical tools are priced for enterprise, leaving SMB and mid-market users underserved.
+- **Moat:** Defensibility rests on three pillars:
   1. **Workflow integration:** A purpose-built chat interface with persistent session history creates switching friction that generic AI tools lack.
-  2. **Feedback-trained improvement loop:** Every interaction is rated; ratings are used to improve prompts and (in v2) fine-tune the model on SMB-specific contract patterns.
-  3. **Azure AI agent pipeline:** Enterprise-grade compliance and data residency options (Azure regions) that SMBs cannot configure with consumer LLM tools — a differentiator when selling to mid-market buyers with procurement requirements.
+  2. **Feedback-trained improvement loop:** Every interaction is rated; ratings are used to improve prompts and (in v2) fine-tune the model on domain-specific patterns.
+  3. **Azure AI agent pipeline:** Enterprise-grade compliance and data residency options that users cannot configure with consumer LLM tools — a differentiator when selling to mid-market buyers with procurement requirements.
 
 ### Why Agentic AI?
 
-- **Unstructured data involved:** Contract text is free-form natural language with enormous variation in structure, clause naming, and legal phrasing across jurisdictions and industries. No two NDAs are formatted the same way.
-- **Why rules fail:** Regex and keyword matching cannot generalise across clause variants. "The party shall indemnify" and "Vendor agrees to hold harmless and defend" are semantically equivalent but lexically unrelated. Rule-based systems miss one; LLMs catch both.
-- **Why LLMs are necessary:** Contracts require contextual reasoning — understanding that a clause 8 pages in overrides a clause on page 2, or that an ambiguous term defined in an appendix changes the meaning of the main body. LLMs maintain this cross-document reasoning that rules cannot.
-- **Differentiation from ChatGPT:** LexAI maintains session and document context across a full conversation, structures agent execution steps visibly (right-panel trace), persists chat history per user in Supabase, and is purpose-built with a legal-domain system prompt and clause-specific output schemas. It also saves every Q&A turn and rating — enabling a proprietary feedback dataset that generic tools cannot replicate.
+- **Unstructured data involved:** Document content is free-form natural language with enormous variation in structure, terminology, and phrasing across domains and document types.
+- **Why rules fail:** Regex and keyword matching cannot generalise across semantic variants. Rule-based systems miss meaning; LLMs understand it.
+- **Why LLMs are necessary:** Documents require contextual reasoning — understanding that a statement later in the document modifies an earlier one, or that a term defined in an appendix changes the meaning of the main body.
+- **Differentiation from ChatGPT:** This app maintains session and document context across a full conversation, structures agent execution steps visibly in a right-panel trace, persists chat history per user in Supabase, and is purpose-built with a configurable system prompt. It saves every Q&A turn and rating — enabling a proprietary feedback dataset that generic tools cannot replicate.
 
 ### How will you know the problem is solved? (Core Metrics)
 
-**North Star Metric:** Average time to complete a contract review session  
-Baseline: 90 minutes (manual review, estimated)  Target: <20 minutes  Tracked via: session start/end timestamps in Supabase
+**North Star Metric:** Average time to complete a document analysis session
+Baseline: 90 minutes (manual review, estimated) | Target: <20 minutes | Tracked via: session start/end timestamps in Supabase
 
 **Primary Metrics:**
 
 | Metric | Baseline | Target | How tracked |
 |---|---|---|---|
 | Response accuracy (user-rated) | — | ≥4.0 / 5.0 average feedback rating | Supabase feedback table |
-| Contract analysis latency (P95) | — | <45s per question on a 20-page contract | Server-side timing logs |
+| Analysis latency (P95) | — | <45s per question on a 20-page document | Server-side timing logs |
 
 **Secondary Metrics:**
 
@@ -68,115 +68,343 @@ Baseline: 90 minutes (manual review, estimated)  Target: <20 minutes  Tracked vi
 
 ## 2. Solution Definition
 
-### User Flows
+### Pages & User Flows
+
+The app has four distinct page types:
+
+1. **Landing page** — public marketing page, unauthenticated
+2. **Auth pages** — `/signup` and `/login`
+3. **Dashboard** — post-login home, shows KPIs + activity feed
+4. **Chat** — document upload + AI conversation interface
 
 **Primary flow:**
 
-Sign up / Log in → Dashboard → Upload Contract → Ask Question → Receive AI Response → Submit Feedback → Continue or Start New Chat
-
-**Detailed flow:**
-
-1. **Authentication:** User signs up or logs in via a custom Supabase `users` table with email/password. JWT token stored in session.
-2. **Dashboard landing:** Three-panel layout loads — left sidebar (chat history + New Chat button), centre panel (chat interface + file attachment), right panel (execution steps trace).
-3. **Contract upload:** User clicks the file attachment button and uploads a PDF or DOCX contract (max 20MB, max ~100 pages). The frontend extracts raw text client-side (PDF.js / Mammoth.js) or sends the file to the backend for server-side extraction.
-4. **Question input:** User types a question (e.g. "What are the termination conditions?") and submits.
-5. **AI pipeline:** The backend sends extracted contract text + conversation history + user question to the Azure AI agent. The right panel shows real-time execution steps (e.g. "Parsing document…", "Identifying relevant clauses…", "Generating response…").
-6. **Response display:** The AI response is streamed into the centre chat panel with source clause references where applicable.
-7. **Feedback capture:** After each assistant message, a feedback widget appears inline — star rating (1–5) and optional comment field. Submission saves to Supabase `feedback` table.
-8. **Session persistence:** All messages (user + assistant), session metadata, and feedback are saved to Supabase in real time.
-9. **Chat history:** Left sidebar lists all previous sessions. Clicking one reloads the full conversation.
-10. **Hallucination safeguard:** System prompt instructs the Azure AI agent to cite clause locations and add a disclaimer if a question cannot be answered from the contract text alone. Low-confidence responses are flagged with a UI indicator.
-
-### Functional Requirements
-
-**User Stories:**
-
-| ID | User Story | Acceptance Criteria | Priority |
-|---|---|---|---|
-| US-001 | As a business owner, I want to sign up with my email and password so that I have a personal account with saved history | Account created in Supabase `users` table; JWT issued; user redirected to dashboard | P0 |
-| US-002 | As a returning user, I want to log in and see my previous chat sessions so that I can continue past reviews | Login authenticates via Supabase; left sidebar shows sessions ordered by most recent | P0 |
-| US-003 | As a user, I want to upload a PDF or DOCX contract so that the AI can analyse it | File accepted up to 20MB; text extracted and stored in session context; error shown for unsupported types | P0 |
-| US-004 | As a user, I want to type a question about the contract and receive an AI answer so that I can understand specific clauses | Question + contract text sent to Azure AI agent; response displayed in chat within 45s (P95) | P0 |
-| US-005 | As a user, I want to see execution steps on the right panel so that I understand what the AI is doing | Right panel updates in real time with labelled steps during AI processing | P0 |
-| US-006 | As a user, I want to rate and comment on each AI response so that I can flag inaccurate answers | Feedback widget appears after every assistant message; rating 1–5 + optional comment; saved to Supabase | P0 |
-| US-007 | As a user, I want to start a new chat session so that I can review a different contract | "New Chat" button in sidebar clears centre panel and creates a new session record in Supabase | P0 |
-| US-008 | As a user, I want to click on a past session in the sidebar and see the full conversation so that I can refer back to previous analysis | Clicking a session loads all messages from Supabase for that session | P1 |
-| US-009 | As a user, I want AI responses to cite the clause or section of the contract they reference so that I can verify the answer | Responses include clause reference (e.g. "Section 4.2") where applicable | P1 |
-| US-010 | As a user, I want to be warned if the AI is uncertain or cannot find an answer in the contract so that I don't act on hallucinated output | AI returns a flagged disclaimer message; right panel shows "Low confidence" step | P1 |
-
-**Functional Requirements Table:**
-
-| ID | Requirement | Priority | Notes |
-|---|---|---|---|
-| FR-001 | User signup and login with email/password stored in Supabase `users` table | P0 | No OAuth in MVP; add Google OAuth in v1.1 |
-| FR-002 | JWT-based session management; token refreshed automatically | P0 | Supabase Auth handles token lifecycle |
-| FR-003 | File upload accepts PDF and DOCX; max 20MB; rejects other formats with a user-facing error | P0 | Client-side validation + server-side check |
-| FR-004 | Text extraction from PDF (PDF.js or server-side PyMuPDF) and DOCX (Mammoth.js or python-docx) | P0 | Scanned PDFs out of scope for MVP; flagged to user |
-| FR-005 | Three-panel dashboard layout: left sidebar, centre chat, right execution trace | P0 | Responsive: collapses to single panel on mobile (P2) |
-| FR-006 | "New Chat" button creates a new session record in Supabase `sessions` table | P0 | Session tied to `user_id` and `created_at` |
-| FR-007 | Chat messages (user + assistant) saved to Supabase `messages` table in real time | P0 | Includes `session_id`, `role`, `content`, `timestamp` |
-| FR-008 | Contract text + conversation history + user question sent to Azure AI agent API | P0 | Context window managed: truncate oldest messages if >100k tokens |
-| FR-009 | Right panel shows labelled execution steps streamed in real time during AI processing | P0 | Steps: Parsing → Retrieving context → Generating response → Complete |
-| FR-010 | AI response displayed via streaming in centre chat panel | P0 | Token-by-token streaming via SSE or WebSocket |
-| FR-011 | Feedback widget (1–5 stars + comment) displayed after each assistant message | P0 | Widget dismissed after submission; can skip |
-| FR-012 | Feedback (rating, comment, message_id, user_id, timestamp) saved to Supabase `feedback` table | P0 | — |
-| FR-013 | Left sidebar lists past sessions with title (first user message truncated to 40 chars) and date | P1 | Sessions sorted by most recent first |
-| FR-014 | Clicking a sidebar session reloads full conversation from Supabase | P1 | Includes all messages + feedback states |
-| FR-015 | AI response includes clause/section references where source is identifiable | P1 | Enforced via system prompt instruction |
-| FR-016 | Disclaimer shown if AI cannot answer from contract text | P1 | Prompt-enforced + UI flag in right panel |
-| FR-017 | Password reset via email | P1 | Supabase email template |
-| FR-018 | Mobile-responsive layout | P2 | MVP targets desktop; mobile in v1.1 |
-| FR-019 | Export chat session to PDF | P2 | Post-launch |
-| FR-020 | Multi-contract upload (compare two contracts) | P2 | Post-launch |
-
-**Non-Functional Requirements:**
-
-- **Performance:** P95 end-to-end response latency < 45 seconds for contracts up to 20 pages; streaming starts within 3 seconds of submission
-- **Scalability:** Support 100 concurrent users without degradation at MVP launch; scale to 1,000 via Azure autoscaling in v1.1
-- **Security:** TLS 1.3 in transit; AES-256 at rest in Supabase; uploaded contract files stored temporarily and deleted after session ends (not persisted); JWT tokens expire after 1 hour
-- **Reliability:** 99.5% uptime SLA; Azure AI agent errors returned as user-facing messages, not silent failures
-- **Usability:** Core flow (upload → question → response) completable without any onboarding or training by a non-technical user
-- **Compliance:** GDPR-aware — contracts are not stored after session; user data deletion supported via account settings (P1)
-
-### Agent Capabilities & System Behaviour
-
-| Component | Input | Output | Autonomy level | Human-in-loop trigger |
-|---|---|---|---|---|
-| Text extractor | PDF / DOCX file | Plain text | Fully autonomous | If extraction fails or file is scanned image, show error and prompt user to upload text-based PDF |
-| Context builder | Extracted text + conversation history | Truncated prompt payload | Fully autonomous | If contract > 100k tokens, warn user that only the first ~80k tokens will be analysed |
-| Azure AI agent | Contract text + question + system prompt | Structured response with clause refs | Autonomous + user review | If response contains uncertainty flag, show disclaimer in UI |
-| Execution tracer | Agent API events | Step-by-step right panel updates | Fully autonomous | — |
-| Feedback collector | User star rating + comment | Saved record | User-initiated | — |
+Landing page → Sign up / Log in → Dashboard → New Chat → Upload Document → Ask Question → Receive AI Response → Submit Feedback → Return to Dashboard
 
 ---
 
-## 3. Technical Requirements
+## 3. Page Specifications
+
+### 3.1 Landing Page (`/`)
+
+The landing page is the public-facing entry point. It communicates the product value proposition and drives signups.
+
+**Sections:**
+- **Hero:** Headline, sub-headline, primary CTA ("Get started free"), secondary CTA ("See how it works")
+- **How it works:** 3-step visual (Upload document → Ask questions → Get instant answers)
+- **Features:** Key capabilities (AI chat, document preview, session history, feedback loop)
+- **Social proof:** Placeholder for testimonials / usage stats post-launch
+- **Pricing:** Plan cards (Free trial, Starter, Growth, Pro)
+- **Footer:** Links to privacy policy, terms, contact
+
+**Behaviour:**
+- If user is already logged in (`userId` in localStorage) → redirect to `/dashboard`
+- "Get started free" → `/signup`
+- "Sign in" in nav → `/login`
+
+---
+
+### 3.2 Auth Pages
+
+#### `/signup` — Create account
+- Light mode, centered card, max-width 400px
+- Serif heading: "Create your account"
+- Fields: Email, Password
+- CTA: "Create account" (full-width primary button)
+- Link: "Already have an account? Sign in" → `/login`
+- Error: red text below form (e.g. "An account with this email already exists")
+- On success: store `userId` + `userEmail` in localStorage → redirect to `/dashboard`
+
+#### `/login` — Sign in
+- Same layout as signup
+- Heading: "Welcome back"
+- CTA: "Sign in"
+- Link: "Don't have an account? Sign up" → `/signup`
+- Error: "Invalid email or password" (never reveal which field is wrong)
+- On success: store `userId` + `userEmail` → redirect to `/dashboard`
+
+---
+
+### 3.3 Dashboard (`/dashboard`)
+
+The dashboard is the post-login home screen. It gives users a quick overview of their activity and provides entry points to start or resume work.
+
+#### KPI Cards
+
+Display the following metrics in a card grid (3–4 columns, responsive):
+
+| KPI | Description | Update cadence |
+|---|---|---|
+| Total documents processed | All-time count of files uploaded | On session load |
+| Documents processed today | Files uploaded in the last 24h | On session load |
+| Total AI queries | All-time message count (user role) | On session load |
+| AI queries this week | Messages in last 7 days | On session load |
+| Active chat sessions | Sessions with messages in last 7 days | On session load |
+| Pinned chats | Count of pinned sessions | Real-time |
+| Documents uploaded | Total file uploads | On session load |
+| Average processing time | Avg ms from message send to response received | On session load |
+| Total reports generated | Count of exported sessions (v1.1) | On session load |
+| Total clauses extracted | Count of AI-identified key passages (v1.1) | On session load |
+| AI accuracy / confidence | Average feedback rating across all sessions | On session load |
+| Failed processing jobs | Count of sessions with error status | On session load |
+| Storage used | Total size of uploaded files (if persisted, v1.1) | On session load |
+
+Each KPI card:
+- Metric label (`text-body-sm text-an-fg-subtle`)
+- Value (`text-display font-medium text-an-fg-base`)
+- Optional delta vs. previous period (`text-caption text-an-success` or `text-an-error`)
+- Icon relevant to metric
+
+#### Recent Activity Feed
+
+A chronological timeline of the authenticated user's recent actions, shown below the KPI grid.
+
+**Event types displayed:**
+- Document uploaded — `"report.pdf uploaded"`
+- New chat started — `"New chat: [session title]"`
+- AI query executed — `"Asked: [first 60 chars of question]…"`
+- Document processed successfully — `"[filename] processed"`
+- Export downloaded — `"Session exported to PDF"` (v1.1)
+- Error occurred — `"Processing failed for [session title]"`
+
+**Layout:**
+- Chronological list, newest first
+- Each item: icon + event label + relative timestamp (`"2 hours ago"`, `"Yesterday"`)
+- Max 50 events shown; "Load more" link below
+- Empty state: "No recent activity yet. Start a new chat to get going."
+
+#### Dashboard Actions
+
+- **New Chat** button (primary, top-right) → navigates to `/chat` and creates a new session
+- **Recent Chats** section below activity feed — last 5 sessions as quick-access cards (title, date, status icon) with "Open" button
+
+---
+
+### 3.4 Chat Interface (`/chat` or `/dashboard/chat`)
+
+The main workspace. Three-panel layout.
+
+#### Layout
+
+```
+┌──────────────────┬────────────────────────────────┬──────────────────────┐
+│  Sidebar 256px   │  Chat Area (flex-1)             │  Right Panel 304px   │
+│  bg-an-bg-subtle │  bg-an-bg-base                  │  bg-an-bg-subtle     │
+│                  │  max-w-[680px] centered          │                      │
+│  [App name]      │                                 │  Execution Steps     │
+│  [Search bar]    │  MessageList                    │  ─────────────────   │
+│  [Filter chips]  │    MessageBubble (user)         │  ● Parsing doc       │
+│  ─────────────   │    MessageBubble (assistant)    │  ↻ Sending to AI…   │
+│  📌 Pinned       │    FeedbackForm                 │  ✓ Response recv'd   │
+│    session 1     │  ─────────────────────────      │                      │
+│    session 2     │  Composer (pinned bottom)       │  Document Preview    │
+│  ─────────────   │    [filename chip ×]            │  [PDF viewer /pre]   │
+│  All chats       │    [textarea]  [▶ send]         │    Page 1 / 12       │
+│    session 3     │    [📎 attach]                  │    [zoom] [fit] [⬇]  │
+│    session 4     │                                 │                      │
+│  ─────────────   │                                 │                      │
+│  user@email.com  │                                 │                      │
+│  [Log out]       │                                 │                      │
+└──────────────────┴────────────────────────────────┴──────────────────────┘
+```
+
+#### Sidebar — Session Management
+
+**Search:**
+- Search bar at top of sidebar
+- Filters sessions by title in real time (client-side, no API call)
+- Clears with ✕ button
+
+**Filter chips** (horizontal scroll below search):
+- All | Pinned | Recent | Processing | Completed | Error
+
+**Pinned section** (shown when ≥1 chat is pinned):
+- Heading "Pinned" (`text-caption text-an-fg-muted uppercase`)
+- Pinned sessions listed first, separated from the rest by a divider
+
+**Session list item:**
+- Height 44px (increased from 36px to accommodate metadata)
+- Title: AI-generated from first user message (first 55 chars + `…`) — `text-body-sm text-an-fg-base` truncated
+- Created timestamp: `text-caption text-an-fg-muted` (e.g. `Jun 10, 14:32`)
+- Last updated: relative time (`"2h ago"`) — `text-caption text-an-fg-muted`
+- Status icon (right side, 14px):
+  - `running` → `Loader2` coral spin
+  - `completed` → `CheckCircle` green
+  - `error` → `AlertCircle` red
+  - `idle` → no icon
+- Right-click or `…` menu on hover:
+  - **Pin / Unpin** — moves session to/from pinned section
+  - **Rename** — inline text edit, confirmed with Enter
+  - **Delete** — confirmation dialog before deletion
+
+**New Chat button:**
+- Full-width, coral accent, `Plus` icon, at top above search bar
+
+#### Centre Panel — Chat Area
+
+**Empty state** (no active session):
+- Centered: app logo + "Start a new conversation" heading + "New Chat" CTA button
+
+**Active session:**
+
+_MessageList:_
+- All messages for the active session, newest at bottom
+- Infinite scroll upward to load older messages (25 at a time)
+- Auto-scrolls to bottom on new message
+- Each message: `MessageBubble` + timestamp
+
+_MessageBubble — User:_
+- Right-aligned, `max-w-[75%]`
+- Background: `bg-an-accent-subtle`, border: `1px solid rgba(217,119,87,0.20)`
+- Border radius: `12px 12px 4px 12px`, padding: `12px 16px`
+- Timestamp below, right-aligned: `HH:MM` (full date if older than today)
+
+_MessageBubble — Assistant:_
+- Left-aligned, up to 680px container width
+- No bubble background — text directly on `bg-an-bg-base`
+- Prefix: 8px coral circle dot (`bg-an-accent rounded-full mt-1 shrink-0`)
+- Streaming: text appears token by token (v1.1; v1.0 shows full response at once)
+- Timestamp below, left-aligned
+
+_FeedbackForm_ (after every assistant bubble):
+- 5-star rating (required) + optional comment (max 200 chars, character counter shown)
+- Submit button — disabled until star selected
+- On submit: replaced by "Thanks for your feedback"
+- On error: inline error text, form stays open for retry
+- Each form is independent — keyed by message ID
+
+_Composer (pinned bottom):_
+- Textarea (auto-resize, 1–5 rows)
+- Enter to send; Shift+Enter for newline
+- Send button (`▶`) — disabled when empty or `isLoading`
+- Paperclip icon (`📎`) — triggers hidden `<input type="file" accept=".pdf,.docx">`
+- Filename chip above textarea when file loaded (shows name + `×` to dismiss)
+- Auto-saved: every user message triggers a Supabase write before the API call
+
+#### Right Panel — Execution Steps + Document Preview
+
+**Execution steps section:**
+
+Steps during a send cycle:
+
+| Step label | Status | Trigger |
+|---|---|---|
+| "Parsing document" | `completed` | After file parsed on load |
+| "Sending to AI…" | `running` | POST /api/chat starts |
+| "Waiting for response…" | `running` | Replaces above |
+| "Response received" | `completed` | Response arrives |
+| "Error" | `error` | Non-200 from /api/chat |
+
+Empty state: "Waiting for activity…" (`text-caption text-an-fg-muted`)
+Reset to `[]` on New Chat.
+
+**Document preview section** (shown when file loaded):
+
+_PDF preview:_
+- `<iframe src={blobUrl}>` — `w-full h-56 rounded-md border border-an-border`
+- Controls bar below iframe:
+  - Page indicator: "Page 1 / 12"
+  - Zoom in (+), Zoom out (−), Fit to width buttons
+  - Download button (if permitted by session settings)
+- Scrolling through all pages supported within the iframe
+- Preview persists while user chats — does not collapse on message send
+
+_DOCX preview:_
+- `<pre>` with first 4,000 chars of extracted text
+- `"… (preview truncated)"` appended if longer
+- `font-mono text-mono text-an-fg-subtle overflow-y-auto max-h-56 whitespace-pre-wrap`
+
+---
+
+## 4. Functional Requirements
+
+### Complete Feature List
+
+| ID | Requirement | Priority | Notes |
+|---|---|---|---|
+| FR-001 | Landing page with hero, features, pricing, and auth CTAs | P0 | Redirect to /dashboard if already logged in |
+| FR-002 | User signup with email/password; stored in custom `users` table with bcrypt hash | P0 | No Supabase Auth |
+| FR-003 | User login; userId + userEmail stored in localStorage | P0 | Generic error message — no field enumeration |
+| FR-004 | Auth guard: dashboard/chat redirect to /login if no userId in localStorage | P0 | — |
+| FR-005 | Dashboard KPI card grid (13 metrics) | P0 | See KPI table in §3.3 |
+| FR-006 | Dashboard recent activity feed (chronological, 50 events, load more) | P0 | User-specific events only |
+| FR-007 | "New Chat" button from dashboard creates session and navigates to chat | P0 | — |
+| FR-008 | Three-panel chat layout (sidebar 256px / centre flex-1 / right panel 304px) | P0 | — |
+| FR-009 | File upload accepts PDF and DOCX only; max 10MB; client-side validation | P0 | Error shown for unsupported types or oversized files |
+| FR-010 | Client-side PDF parsing via pdfjs-dist | P0 | Scanned PDFs detected and blocked with user-facing error |
+| FR-011 | Client-side DOCX parsing via mammoth | P0 | — |
+| FR-012 | Document text sent to `/api/chat` server-side route with every message | P0 | Azure never called from client |
+| FR-013 | AI response displayed in chat after full response received | P0 | Streaming in v1.1 |
+| FR-014 | Streaming AI responses (SSE token-by-token) | P1 | v1.1 |
+| FR-015 | Right panel execution steps — live status during AI request | P0 | 5 step states: parsing / sending / waiting / completed / error |
+| FR-016 | PDF preview in right panel with controls (zoom, fit, page count, download) | P0 | iframe with blob URL |
+| FR-017 | DOCX preview in right panel (plain text, truncated at 4,000 chars) | P0 | — |
+| FR-018 | Document preview persists while chatting | P0 | Not cleared on message send |
+| FR-019 | Feedback widget (1–5 stars + optional comment) after every assistant message | P0 | — |
+| FR-020 | Feedback saved to Supabase `feedback` table | P0 | — |
+| FR-021 | AI-generated session titles (first 55 chars of first user message + `…`) | P0 | Only when title is still "New session" |
+| FR-022 | Session list in sidebar with title, created timestamp, last-updated, status icon | P0 | — |
+| FR-023 | Pinned chats — pin/unpin from context menu; pinned section at top of sidebar | P0 | Pinned state stored in Supabase sessions table |
+| FR-024 | Rename chat — inline edit from context menu, confirmed with Enter | P0 | PATCH /api/sessions/[id] |
+| FR-025 | Delete chat — confirmation dialog before deletion | P0 | DELETE /api/sessions/[id]; cascade deletes messages + feedback |
+| FR-026 | Search sessions — real-time client-side filter by title | P0 | — |
+| FR-027 | Filter sessions by status — All / Pinned / Recent / Processing / Completed / Error | P0 | — |
+| FR-028 | Complete conversation history per session — reload all messages from Supabase on session select | P0 | Immediately clear stale messages before loading new |
+| FR-029 | Reopen past chats and continue conversation | P0 | Document text NOT reloaded (user must re-attach if needed) |
+| FR-030 | Auto-save: every user message written to Supabase before API call | P0 | — |
+| FR-031 | Infinite scroll — load 25 messages at a time when scrolling up | P1 | Cursor-based pagination |
+| FR-032 | Message timestamps — `HH:MM` per bubble; full date for messages older than today | P0 | — |
+| FR-033 | Logout — clears localStorage, redirects to /login | P0 | — |
+| FR-034 | Password reset via email | P1 | Supabase email template |
+| FR-035 | Export chat session to PDF | P2 | v1.1 |
+| FR-036 | Mobile-responsive layout | P2 | v1.1 — MVP targets desktop |
+
+### Non-Functional Requirements
+
+- **Performance:** P95 end-to-end response latency < 45s for documents up to 20 pages; response starts within 3s of submission; dashboard KPIs load within 1s
+- **Scalability:** 100 concurrent users at MVP; scale to 1,000 via Azure autoscaling in v1.1
+- **Security:** TLS 1.3 in transit; AES-256 at rest; document files never persisted server-side; bcrypt passwords; no credentials in client-side code
+- **Reliability:** 99.5% uptime SLA; AI agent errors shown as user-facing messages, never silent
+- **Usability:** Core flow (upload → question → response) completable without any onboarding by a non-technical user
+- **Compliance:** GDPR-aware — document content not stored after session; user data deletion supported (P1)
+
+---
+
+## 5. Technical Requirements
 
 ### Architecture Overview
 
 ```
-[Browser (React)]
+[Browser (React + Next.js)]
      │
-     ├── Auth (Supabase Auth / custom users table)
-     ├── File Upload → Text Extraction (client-side PDF.js / Mammoth.js)
-     ├── Chat UI (streaming via SSE)
+     ├── Landing page (public, /index)
+     ├── Auth pages (/signup, /login)
+     ├── Dashboard (/dashboard) — KPIs + activity feed
+     ├── Chat (/chat) — 3-panel layout
+     ├── File Upload → Text Extraction (client-side pdfjs-dist / mammoth)
      └── Supabase JS SDK (read/write sessions, messages, feedback)
 
-[Backend API (Node.js / FastAPI)]
+[Next.js API Routes (server-side only)]
      │
-     ├── POST /chat → Azure AI Agent call
-     ├── POST /extract → Server-side extraction fallback
-     └── Middleware: JWT verification, rate limiting
+     ├── POST /api/auth/signup
+     ├── POST /api/auth/login
+     ├── POST /api/chat          ← Azure AI call (NEVER from client)
+     ├── POST /api/sessions
+     ├── GET  /api/sessions/[id]/messages
+     ├── PATCH /api/sessions/[id]
+     ├── DELETE /api/sessions/[id]
+     ├── POST /api/messages
+     └── POST /api/feedback
 
 [Azure AI Agent]
-     └── Receives: system prompt + contract text + chat history + user question
-         Returns: streamed response with clause refs + execution steps
+     └── Receives: system prompt + document text + conversation history + user question
+         Returns: full response with source references
 
 [Supabase (PostgreSQL)]
-     ├── users         (id, email, hashed_password, created_at)
-     ├── sessions      (id, user_id, title, created_at, updated_at)
-     ├── messages      (id, session_id, role, content, created_at)
-     └── feedback      (id, message_id, user_id, rating, comment, created_at)
+     ├── users     (id, email, password_hash, created_at)
+     ├── sessions  (id, user_id, title, status, pinned, created_at, updated_at)
+     ├── messages  (id, session_id, role, content, created_at)
+     └── feedback  (id, user_id, session_id, rating, comment, created_at)
 ```
 
 ### Database Schema
@@ -184,300 +412,255 @@ Sign up / Log in → Dashboard → Upload Contract → Ask Question → Receive 
 **`users`**
 | Column | Type | Notes |
 |---|---|---|
-| id | UUID | Primary key |
+| id | UUID | PK, `gen_random_uuid()` |
 | email | TEXT | Unique |
-| hashed_password | TEXT | bcrypt |
-| created_at | TIMESTAMPTZ | — |
+| password_hash | TEXT | bcryptjs, 10 rounds |
+| created_at | TIMESTAMPTZ | `now()` |
 
 **`sessions`**
 | Column | Type | Notes |
 |---|---|---|
-| id | UUID | Primary key |
-| user_id | UUID | FK → users.id |
-| title | TEXT | First 40 chars of first user message |
+| id | UUID | PK |
+| user_id | UUID | FK → users.id, cascade delete |
+| title | TEXT | AI-generated; first 55 chars of first user message |
+| status | TEXT | `'idle'`, `'processing'`, `'completed'`, `'error'` |
+| pinned | BOOLEAN | Default `false` |
 | created_at | TIMESTAMPTZ | — |
-| updated_at | TIMESTAMPTZ | — |
+| updated_at | TIMESTAMPTZ | Updated on every new message |
 
 **`messages`**
 | Column | Type | Notes |
 |---|---|---|
-| id | UUID | Primary key |
-| session_id | UUID | FK → sessions.id |
-| role | TEXT | 'user' or 'assistant' |
+| id | UUID | PK |
+| session_id | UUID | FK → sessions.id, cascade delete |
+| role | TEXT | `'user'` or `'assistant'` |
 | content | TEXT | Full message text |
 | created_at | TIMESTAMPTZ | — |
 
 **`feedback`**
 | Column | Type | Notes |
 |---|---|---|
-| id | UUID | Primary key |
-| message_id | UUID | FK → messages.id |
-| user_id | UUID | FK → users.id |
+| id | UUID | PK |
+| user_id | UUID | FK → users.id, cascade delete |
+| session_id | UUID | FK → sessions.id, cascade delete |
 | rating | INTEGER | 1–5 |
 | comment | TEXT | Optional |
 | created_at | TIMESTAMPTZ | — |
 
+### Component Tree
+
+```
+app/
+├── page.tsx                      ← landing page (public)
+├── signup/page.tsx               ← signup form
+├── login/page.tsx                ← login form
+└── dashboard/
+    ├── layout.tsx                ← auth guard
+    ├── page.tsx                  ← dashboard: KPIs + activity feed
+    └── chat/
+        ├── layout.tsx            ← 3-panel shell
+        └── page.tsx              ← all shared chat state + callbacks
+
+components/
+├── landing/
+│   ├── Hero.tsx
+│   ├── HowItWorks.tsx
+│   ├── Features.tsx
+│   └── PricingCards.tsx
+├── dashboard/
+│   ├── KPICard.tsx
+│   └── ActivityFeed.tsx
+├── chat/
+│   ├── Sidebar.tsx               ← search, filters, pinned, session list, context menu
+│   ├── ChatArea.tsx              ← composer, file attach, wraps MessageList
+│   ├── MessageList.tsx           ← infinite scroll, maps messages
+│   ├── MessageBubble.tsx         ← user or assistant bubble
+│   ├── FeedbackForm.tsx          ← star rating + comment
+│   └── RightPanel.tsx            ← execution steps + document preview + PDF controls
+└── shared/
+    └── ConfirmDialog.tsx         ← reusable delete confirmation
+
+lib/
+├── supabase.ts                   ← single shared client
+├── db.ts                         ← all DB helpers
+└── parse-file.ts                 ← parseFile(file): Promise<string>
+```
+
+### Shared State (Chat page)
+
+| State | Type | Purpose |
+|---|---|---|
+| `userId` | `string` | From localStorage |
+| `userEmail` | `string` | Sidebar footer |
+| `sessions` | `Session[]` | Full list for sidebar |
+| `activeSessionId` | `string \| null` | Current session |
+| `messages` | `Message[]` | Loaded messages for active session |
+| `documentText` | `string` | Sent with every `/api/chat` request |
+| `documentFileName` | `string` | Filename chip display |
+| `documentPreview` | `{ url, type, filename } \| null` | Right panel preview |
+| `isLoading` | `boolean` | Composer disabled during AI request |
+| `steps` | `Step[]` | Right panel execution steps |
+
 ### Prompt Strategy
 
-| Task | Technique | Output format | Rationale |
-|---|---|---|---|
-| Contract Q&A | RAG-style: contract text injected in context + zero-shot question | Plain text with inline clause references (e.g. "per Section 4.2") | Contract text is the ground truth; grounding prevents hallucination |
-| Clause explanation | Few-shot (2–3 examples of clause → plain-English explanation) | Paragraph, max 200 words | Consistent reading level for non-lawyers |
-| Risk flagging | Chain-of-Thought: "Think step-by-step about what risk this clause poses" | `{ "clause": string, "risk_level": "High|Medium|Low", "explanation": string }` | Structured output enables right-panel rendering |
-| Uncertainty handling | System prompt instruction: "If the answer is not in the contract, say so explicitly and do not speculate" | Flagged disclaimer message | Reduces hallucination; builds user trust |
+| Task | Technique | Output |
+|---|---|---|
+| Document Q&A | Context injection: document text + conversation history + zero-shot question | Plain text with inline source references |
+| Uncertainty handling | System prompt: "If answer not in document, say so explicitly; do not speculate" | Flagged disclaimer message |
 
-**System prompt (MVP):**
-> You are LexAI, an AI legal assistant. You help users understand contracts by answering questions based solely on the contract text provided. Always cite the specific section or clause you are referencing. If the answer cannot be found in the provided text, say: "I cannot find this in the contract — please consult a qualified lawyer." Do not provide legal advice; provide legal information and analysis only.
-
-**Prompt improvement plan:**
-- Prompt versions tracked in a shared doc (v1.0, v1.1…)
-- Feedback ratings <3 stars trigger a prompt review cycle
-- Monthly A/B test of prompt variants on the internal eval set
+**System prompt:**
+> You are an AI assistant. Answer questions based solely on the document text provided. Always cite the specific section or part you are referencing. If the answer cannot be found in the provided text, say: "I cannot find this in the document." Do not speculate beyond what the document contains.
 
 ### Model Requirements
 
-| Criteria | Requirement | Rationale |
+| Criteria | Requirement |
+|---|---|
+| Model | Azure OpenAI GPT-4o (or equivalent Azure AI Foundry agent) |
+| Context window | ≥100k tokens |
+| Latency target | <30s per LLM call |
+| Cost target | <$1.50 per document Q&A |
+
+### Technology Choices
+
+| Item | What we use | Why |
 |---|---|---|
-| Model | Azure OpenAI GPT-4o (or equivalent Azure AI Foundry agent) | Best reasoning + 128k context window for long contracts |
-| Context window | ≥100k tokens | Long contracts (50+ pages) must fit in a single call |
-| Latency | <30s per LLM call | Feeds into <45s P95 UX target |
-| Cost per call | <$1.50 for a 20-page contract Q&A | Supports <$2.50 per analysis operational target |
-| Fine-tuning | Not in MVP; evaluate domain fine-tuning for v2 based on feedback corpus | MVP prioritises time-to-market |
-
-### Cost & Technology Choices
-
-| Item | What we use | Why | Trade-off |
-|---|---|---|---|
-| Frontend | React + Tailwind CSS | Fast to build; component ecosystem for chat UI | SSR not supported without Next.js |
-| Backend API | Node.js (Express) | Team familiarity; non-blocking I/O for streaming | Less suited for CPU-heavy ML tasks |
-| LLM | Azure OpenAI GPT-4o | Enterprise compliance, data residency, high context window | Higher token cost vs OSS models |
-| Text extraction | PDF.js (client) + Mammoth.js (DOCX) | No file upload to a third-party; privacy-preserving | Poor on scanned PDFs (flagged to user) |
-| Database | Supabase (PostgreSQL) | Real-time subscriptions; built-in Auth | Vendor lock-in; limited at very high scale |
-| Hosting | Vercel (frontend) + Azure App Service (backend) | Low ops overhead; aligns with Azure AI stack | Cold start latency on Vercel serverless |
-| Auth | Supabase custom `users` table + JWT | Required by spec; full control over user schema | Must implement password reset manually |
+| Framework | Next.js 14 (App Router) | API routes + React in one repo |
+| Language | TypeScript | Type safety |
+| Styling | Tailwind CSS | Fast + consistent with design system |
+| LLM | Azure OpenAI GPT-4o | Enterprise compliance, data residency, large context |
+| PDF parsing | pdfjs-dist | Client-side, no upload to third party |
+| DOCX parsing | mammoth | Client-side |
+| Database | Supabase (PostgreSQL) | Easy setup, real-time, JS SDK |
+| Auth | Custom `users` table + bcryptjs | Full control; no Supabase Auth |
+| Hosting | Vercel | Low ops overhead |
 
 ---
 
-## 4. Roadmap
+## 6. Roadmap
 
 | Release | Features | Duration | Priority |
 |---|---|---|---|
-| **v0.1 — Internal Alpha** | Auth (signup/login), dashboard 3-panel layout, file upload (PDF/DOCX), basic text extraction, single-turn Azure AI Q&A, message saved to Supabase | 3 weeks | P0 |
-| **v0.2 — Closed Beta** | Multi-turn conversation history, left sidebar with session list, right panel execution steps, feedback widget (rating + comment), feedback saved to Supabase | 3 weeks | P0 |
-| **v1.0 — Public Launch** | Session title auto-generation, clause citations in responses, uncertainty disclaimer, password reset, performance optimisation (streaming, latency <45s P95), security audit | 4 weeks | P0 |
-| **v1.1 — Growth** | Google OAuth, mobile-responsive layout, export session to PDF, session search, improved extraction for complex PDFs | 6 weeks | P1 |
-| **v2.0 — Scale** | Multi-contract comparison, domain-specific fine-tuning on feedback corpus, team workspaces, API access for enterprise, analytics dashboard | Q3 2026 | P2 |
+| **v0.1 — Internal Alpha** | Landing page, auth (signup/login), dashboard (KPI cards + activity feed), chat 3-panel layout, file upload + client-side extraction, single-turn Azure AI Q&A, messages saved to Supabase | 3 weeks | P0 |
+| **v0.2 — Closed Beta** | Multi-turn conversation history, sidebar session list with search/filter/pin/rename/delete, right panel execution steps + PDF preview with controls, feedback widget, auto-save | 3 weeks | P0 |
+| **v1.0 — Public Launch** | Session title auto-generation, source citations, uncertainty disclaimer, infinite scroll, message timestamps, session status icons, password reset, performance optimisation, security audit | 4 weeks | P0 |
+| **v1.1 — Growth** | Streaming AI responses (SSE), Google OAuth, mobile-responsive layout, export session to PDF, session search improvements, activity feed real-time updates | 6 weeks | P1 |
+| **v2.0 — Scale** | Multi-document comparison, domain fine-tuning on feedback corpus, team workspaces, API access, advanced analytics dashboard | Q3 2026 | P2 |
 
 ---
 
-## 5. Risks & Dependencies
-
-### Component-Level Risk Table
-
-| Component | ML necessary? | Data available? | Accuracy risk | Bias risk | Explainability |
-|---|---|---|---|---|---|
-| Text extraction (PDF) | No | N/A | Medium — scanned PDFs will fail | Low | Easy — deterministic |
-| Azure AI Q&A agent | Yes | Contract text provided at runtime | Medium — hallucination on ambiguous questions | Low — legal domain is factual | Medium — clause refs help; no full CoT exposed |
-| Feedback analysis | No (aggregation only) | Yes — collected from day 1 | Low | Low | Easy |
-
-### Key Risks
+## 7. Risks & Dependencies
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
-| Azure AI agent hallucinates a clause or invents legal content | Medium | High | System prompt grounding; uncertainty disclaimer; user feedback loop |
-| Scanned PDF upload fails text extraction | High | Medium | Detect and warn user; recommend text-based PDF alternative |
-| Contract too long for context window | Medium | Medium | Truncate at 80k tokens; warn user; chunk-and-retrieve in v1.1 |
-| Supabase RLS misconfiguration exposes other users' sessions | Low | Critical | Enforce Row-Level Security policies; pentest before launch |
-| Azure AI latency spikes above 45s | Low | Medium | Add timeout + retry logic; show progress animation; fallback error message |
-| User uploads sensitive contract; data residency concern | Medium | High | Contracts not persisted post-session; Azure data residency settings documented |
-
-### External Dependencies
-
-- Azure AI Foundry / Azure OpenAI service availability and API pricing
-- Supabase uptime and PostgreSQL service reliability
-- PDF.js and Mammoth.js open-source library maintenance
+| AI agent hallucinates content not in document | Medium | High | System prompt grounding; uncertainty disclaimer; user feedback loop |
+| Scanned PDF fails text extraction | High | Medium | Detect and warn user; recommend text-based PDF |
+| Document too long for context window | Medium | Medium | Truncate at 80k tokens; warn user |
+| Supabase RLS misconfiguration exposes other users' sessions | Low | Critical | Enforce Row-Level Security; pentest before launch |
+| Azure AI latency spikes above 45s | Low | Medium | Timeout + retry logic; progress animation; fallback error |
+| Sensitive content uploaded; data residency concern | Medium | High | Documents not persisted post-session; Azure data residency configured |
+| Dashboard KPI queries slow with large data | Low | Medium | Add indexes on `user_id` + `created_at`; aggregate on read |
 
 ---
 
-## 6. Evaluations
+## 8. Evaluations
 
-### Evaluation Strategy
-
-**Ground truth sources:**
-- CUAD dataset (510 commercial contracts, 13,000+ expert annotations) — used for clause-level accuracy testing
-- Internal test set: 20 real SMB contracts reviewed by a qualified lawyer and annotated for key clauses and risks
-- User feedback corpus (opt-in): feedback ratings and comments collected from beta users
-
-**Evaluation plan:**
+### Evaluation Plan
 
 | Eval type | Method | Target | Cadence |
 |---|---|---|---|
-| Q&A accuracy (user-rated) | Average feedback rating from Supabase `feedback` table | ≥4.0 / 5.0 | Weekly (post-beta) |
-| Clause citation accuracy | Manual review: does cited clause actually contain the answer? | >85% correct citations | Per release (20-contract sample) |
-| Hallucination rate | % of responses where AI invents content not in contract | <5% | Per release (expert audit) |
-| Latency (P95) | End-to-end timing from question submit to response complete | <45s | Per release, automated |
-| Uncertainty recall | % of unanswerable questions that trigger the disclaimer | >90% | Per release |
-| Feedback submission rate | % of assistant messages with a submitted rating | >70% | Weekly (post-launch) |
-
-**Evaluation spreadsheet columns:**
-`Contract ID | Question | Expected answer | AI response | Clause cited | Correct? (Y/N) | Rating | Hallucination flag | Expert notes`
-
-**Post-launch AI monitoring:**
-- Automated weekly summary of average feedback ratings per session and per prompt version
-- Alert if average rating drops below 3.5 for >50 responses in a 7-day window
-- Monthly expert audit: 10 random sessions reviewed by a legal SME
-
-### HHH Evaluation
-
-| Pillar | Strength | Risk | Mitigation |
-|---|---|---|---|
-| Helpful | Saves users 60–80 minutes per contract review; surfaces risks non-lawyers miss | Response too long or too technical for non-lawyers | System prompt specifies plain English; max 200 words per explanation |
-| Honest | System prompt grounds all answers in uploaded contract text; clause citations provided | LLM may hallucinate clause content or misread ambiguous language | "Cannot find in contract" disclaimer enforced by prompt; user feedback flags errors |
-| Harmless | Domain is factual legal text; no personal data in contract analysis | User acts on an incorrect risk flag and signs a harmful contract | Prominent disclaimer: "Not legal advice"; recommend lawyer for High-risk findings |
+| Q&A accuracy (user-rated) | Average feedback rating | ≥4.0 / 5.0 | Weekly post-beta |
+| Source citation accuracy | Manual review: does cited section contain the answer? | >85% correct | Per release |
+| Hallucination rate | % responses where AI invents content not in document | <5% | Per release |
+| Latency (P95) | End-to-end from question submit to response complete | <45s | Per release, automated |
+| Uncertainty recall | % unanswerable questions that trigger the disclaimer | >90% | Per release |
+| Feedback submission rate | % assistant messages with a submitted rating | >70% | Weekly post-launch |
+| Dashboard load time | Time to first contentful paint on /dashboard | <1s | Per release |
 
 ### Launch Criteria
 
-| Stage | Helpful | Honest | Harmless | Go criteria |
-|---|---|---|---|---|
-| Alpha (internal, 5 users) | Basic Q&A works | No silent failures | Disclaimer shown | <1% crash rate; core flow end-to-end functional |
-| Beta (closed, 50 users) | Avg rating ≥3.8 | Hallucination rate <10% | Disclaimer shown on 100% of unanswerable Qs | Latency <45s P95; feedback submission rate >50% |
-| Public launch | Avg rating ≥4.0 | Hallucination rate <5% | Legal disclaimer on every session | Security audit passed; 30-day retention >40% |
+| Stage | Go criteria |
+|---|---|
+| Alpha (5 internal users) | <1% crash rate; all P0 flows end-to-end functional; dashboard loads |
+| Beta (50 users) | Avg rating ≥3.8; hallucination rate <10%; latency <45s P95; feedback rate >50% |
+| Public launch | Avg rating ≥4.0; hallucination rate <5%; security audit passed; 30-day retention >40% |
 
 ---
 
-## 7. Responsible AI Risks & Mitigation
+## 9. Responsible AI
 
-### Accountability
+| Pillar | Strength | Risk | Mitigation |
+|---|---|---|---|
+| Helpful | Reduces document review time by 60–80%; surfaces details non-experts miss | Response too long or too technical | System prompt specifies plain English; max 200 words per explanation |
+| Honest | All answers grounded in uploaded document; source references cited | LLM may hallucinate or misread ambiguous content | "Cannot find in document" disclaimer; user feedback flags errors |
+| Harmless | Domain is factual text; no personal data in analysis | User acts on incorrect output without expert review | Prominent disclaimer: "Not professional advice — consult a qualified expert" |
 
-| Question | Answer |
-|---|---|
-| Efficacy & limitations | LexAI analyses text-based contracts in English; it will struggle with scanned documents, non-English contracts, and highly specialised legal language (e.g. derivatives contracts). It does not provide legal advice. |
-| Compliance policies | Contracts not persisted after session; Supabase data stored in chosen Azure region; GDPR-compliant data deletion on request |
-| How is sensitive data managed? | Contract text exists in memory during session only; not logged to model provider; JWT expiry at 1 hour; Supabase AES-256 at rest |
-| Human oversight and control | Users can rate every response; all responses include disclaimer; high-stakes decisions flagged for lawyer review |
-
-### Transparency
-
-| Question | Answer |
-|---|---|
-| Direct use cases | Contract Q&A, clause explanation, risk identification |
-| Indirect / misuse potential | Users may treat AI output as definitive legal advice and forgo professional review |
-| How are results generated | Disclosed in onboarding: contract text + question sent to Azure AI GPT-4o; answer grounded in provided text |
-| Benchmarks to share | Beta accuracy metrics (avg rating, hallucination rate) published in help docs post-launch |
-| Disclosures needed | "LexAI provides legal information, not legal advice. Always consult a qualified lawyer before signing." — shown on every session |
-
-### Fairness
-
-| Question | Answer |
-|---|---|
-| Underrepresented groups | Non-English contracts; contracts from non-Western legal systems; contracts using non-standard clause structures |
-| Why they underperform | Training data and test set are English, common-law-jurisdiction contracts. Model has less legal reasoning ability for civil law or non-English contexts. |
-| Plan to improve | v2: evaluate multilingual contract support; expand eval set to include non-English contracts |
-
-### Reliability & Safety
-
-| Question | Answer |
-|---|---|
-| Acceptable error rate | <5% of responses contain hallucinated content; <1% of sessions result in a silent failure |
-| Consequences of bad input | Malformed PDF → extraction fails → user sees error prompt; does not trigger AI call |
-| Recovery plan | Azure AI outage → graceful error message with retry; Supabase outage → read from local session cache where possible; rollback plan within 2 hours |
-| System health monitoring | Azure Monitor for API latency/errors; Supabase dashboard for DB metrics; Sentry for frontend errors |
-| Customer communication plan | In-app banner within 30 minutes of P0 incident; email to affected users within 2 hours |
+**Disclaimer shown on every session:**
+> "This app provides AI-generated analysis only. Always consult a qualified professional before acting on the findings."
 
 ---
 
-## 8. Pricing
+## 10. Pricing
 
-### Development Costs (One-Time / MVP)
+### Development Costs (MVP)
 
 | Item | Estimated cost |
 |---|---|
 | Azure OpenAI API credits (dev + test) | $500 |
-| Supabase Pro plan setup | $25/month (3 months dev = $75) |
-| Vercel Pro (frontend hosting) | $20/month (3 months = $60) |
-| Azure App Service (backend) | $70/month (3 months = $210) |
-| Security penetration test | $2,000 |
-| Miscellaneous (domains, tooling) | $200 |
-| **Infrastructure subtotal** | **~$3,045** |
+| Supabase Pro (3 months) | $75 |
+| Vercel Pro (3 months) | $60 |
+| Security pentest | $2,000 |
+| Miscellaneous | $200 |
+| **Infrastructure subtotal** | **~$2,835** |
+| Lead Full-Stack Engineer (3 months) | $25,000 |
+| Backend / AI Integration Engineer (3 months) | $20,000 |
+| Product Manager (3 months) | $15,000 |
+| UX Designer (part-time, 3 months) | $8,000 |
+| QA Engineer (part-time, 3 months) | $6,000 |
+| **Manpower subtotal** | **$74,000** |
+| **Total MVP** | **~$76,835** |
 
-| Role | Duration | Estimated cost |
-|---|---|---|
-| Product Manager | 3 months | $15,000 |
-| Lead Full-Stack Engineer | 3 months | $25,000 |
-| Backend / AI Integration Engineer | 3 months | $20,000 |
-| UX Designer (part-time) | 3 months | $8,000 |
-| QA Engineer (part-time) | 3 months | $6,000 |
-| **Manpower subtotal** | | **$74,000** |
-| **Total one-time (MVP)** | | **~$77,000** |
+### Operational Costs (500 active users/month)
 
-### Operational Costs (Recurring Monthly at 500 active users)
-
-| Item | Monthly cost |
+| Item | Monthly |
 |---|---|
-| Azure OpenAI API (est. 5,000 analyses/month × $0.50 avg) | $2,500 |
+| Azure OpenAI API (5,000 analyses × ~$0.50) | $2,500 |
 | Supabase Pro | $25 |
 | Vercel Pro | $20 |
-| Azure App Service | $150 |
 | Monitoring (Sentry + Azure Monitor) | $50 |
-| **Monthly total** | **~$2,745** |
+| **Total** | **~$2,595** |
 
-Cost per analysis at 5,000 sessions/month: **$0.55** (infrastructure) + Azure AI token cost (**~$1.50 est.**) = **~$2.05 per session** — within the <$2.50 target.
+Cost per analysis: ~$0.52 (infra) + ~$1.50 (Azure AI) = **~$2.02** — within the <$2.50 target.
 
-### Market Size
-
-- **TAM:** Global legal tech market estimated at $35.6B by 2027 (Grand View Research, 2023)
-- **SAM:** AI contract review tools addressable to SMBs and mid-market companies globally — estimated $4.2B
-- **SOM:** English-speaking SMB segment in US, UK, India, Australia in first 24 months — targeting $20M ARR by Year 3
-
-### Revenue Model & Pricing
-
-| Model | Pros | Cons | Verdict |
-|---|---|---|---|
-| Per-document | Low friction, pay-as-you-go | Unpredictable revenue | Offered as add-on only |
-| Subscription tiers | Predictable ARR; encourages usage habit | Tier sizing complexity | **Primary model** |
-| Usage-based | Scales with value | Unpredictable for customer | Hybrid option for Growth tier |
-| Freemium | Drives adoption | Conversion risk; cost of free users | Free trial only (14 days) |
-
-**Directional Pricing:**
+### Pricing Tiers
 
 | Plan | Price | Includes | Target user |
 |---|---|---|---|
-| Free trial | $0 / 14 days | 5 contract analyses | All new signups |
-| Starter | $29 / month | 20 analyses, 1 user | Solo founder, freelancer |
-| Growth | $79 / month | 100 analyses, 5 users | SMB ops team |
-| Pro | $199 / month | Unlimited analyses, 20 users, priority support | Mid-market legal ops |
-
-Value anchor: "$29/month = less than 6 minutes of a lawyer's time — and you get 20 full contract reviews."
-
-**Revenue projections:**
-
-| Scenario | Paying customers (Yr 2) | ARPU | ARR |
-|---|---|---|---|
-| Conservative | 300 | $55 | $198,000 |
-| Target | 800 | $70 | $672,000 |
-| Optimistic | 2,000 | $85 | $2,040,000 |
+| Free trial | $0 / 14 days | 5 document analyses | All new signups |
+| Starter | $29 / month | 20 analyses, 1 user | Solo user, freelancer |
+| Growth | $79 / month | 100 analyses, 5 users | SMB team |
+| Pro | $199 / month | Unlimited analyses, 20 users, priority support | Mid-market |
 
 ---
 
-## 9. Open Questions
+## 11. Open Questions
 
-1. **Azure AI agent API:** Which specific Azure AI Foundry endpoint and model deployment will be used? Who owns the Azure subscription and budget? (Owner: Engineering Lead — resolve before v0.1)
-2. **Scanned PDF handling:** Should v1.0 support OCR via Azure Document Intelligence for scanned contracts, or strictly block scanned uploads? (Owner: PM + Engineering — resolve before v0.2 beta)
-3. **Data retention for uploaded contracts:** Should contract text be deleted immediately after session, or retained for 24 hours to support session reload? Legal/privacy review needed. (Owner: PM + Legal adviser — resolve before public launch)
-4. **Feedback data use:** Is user feedback (ratings + comments + contract excerpts) used to improve the model in v2? If yes, what consent mechanism is required? (Owner: PM — resolve before v1.1)
-5. **Right panel execution steps:** Are steps streamed from the Azure AI agent API directly, or simulated client-side based on known pipeline stages? (Owner: Engineering — resolve in v0.1 sprint planning)
+1. **Azure AI endpoint:** Which specific Azure AI Foundry endpoint and model deployment? Who owns the subscription and budget? (Owner: Engineering Lead — resolve before v0.1)
+2. **Scanned document handling:** Support OCR via Azure Document Intelligence in v1.0, or strictly block scanned uploads? (Owner: PM + Engineering — resolve before v0.2)
+3. **Data retention:** Delete document text immediately after session, or retain 24h to support session reload? (Owner: PM — resolve before public launch)
+4. **Dashboard KPI queries:** Computed on-read from existing tables, or materialised into a separate `analytics` table? (Owner: Engineering — resolve in v0.1 sprint planning)
+5. **Pinned chats storage:** Stored in `sessions.pinned` column (recommended) or a separate `pinned_sessions` table? (Owner: Engineering — resolve in v0.1)
+6. **Feedback data use:** Are ratings + comments used for model fine-tuning in v2? What consent mechanism is required? (Owner: PM — resolve before v1.1)
 
 ---
 
-## 10. Assumptions Made
+## 12. Assumptions
 
-- The Azure AI agent (Azure OpenAI GPT-4o or equivalent) supports a context window of ≥100k tokens, sufficient for contracts up to ~80 pages.
-- Supabase custom `users` table (not Supabase Auth's built-in users) is used as specified; JWT management is handled via Supabase's session API.
-- Contracts are in English and text-based (not scanned images); scanned PDF support is out of scope for MVP.
-- The right-panel execution steps trace is a real-time UI feature that reflects known pipeline stages; full agent-side event streaming is a v1.1 enhancement.
-- Team size for MVP is 3–4 engineers; cost estimates reflect blended rates for a mix of senior and mid-level engineers in a cost-effective geography.
-- "Azure AI agent" refers to an Azure AI Foundry agent or an Azure OpenAI API call orchestrated by the backend — not a third-party agent platform.
-- Feedback ratings are used for product monitoring and prompt improvement; they are not used for model fine-tuning in MVP without explicit user consent mechanisms in place.
-- No multi-tenancy or team workspaces in MVP; each user account is individual.
-- GDPR compliance is addressed by not persisting contract content beyond the session; full legal review of data flows is assumed to be conducted before public launch.
-- Development timeline assumes 10 weeks from kickoff to public launch (v0.1: 3 weeks, v0.2: 3 weeks, v1.0 hardening: 4 weeks).
+- Azure AI agent supports ≥100k token context window, sufficient for ~80-page documents.
+- Custom `users` table (not Supabase Auth); user ID managed via localStorage.
+- Documents are text-based, not scanned images; scanned support is out of scope for MVP.
+- Right-panel execution steps are simulated client-side based on known pipeline stages; full agent-side event streaming is a v1.1 enhancement.
+- Dashboard KPI data is derived from existing Supabase tables on read (no separate analytics table in MVP).
+- Team size for MVP: 3–4 engineers. Timeline: 10 weeks from kickoff (v0.1: 3w, v0.2: 3w, v1.0 hardening: 4w).
+- Feedback ratings used for monitoring and prompt improvement only — no model fine-tuning in MVP without explicit consent mechanisms.
+- No multi-tenancy or team workspaces in MVP; individual accounts only.
+- GDPR compliance addressed by not persisting document content beyond the session; full legal review before public launch.
