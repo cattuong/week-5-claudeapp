@@ -22,7 +22,6 @@ Read these files before doing anything else:
 3. Use @skills/implementation/implementation.md to build the app
    - Follow /knowledge/plan.md phases in order (Phase 1 through 9)
    - Read /knowledge/design-system.md before writing any UI code
-   - Read /knowledge/azure-endpoint.md before writing /api/chat/route.ts
 4. Use @skills/testing/testing.md to test all flows
 
 ## Key References
@@ -39,6 +38,4 @@ Read these files before doing anything else:
 
 Confirm these are ready:
 - [ ] Supabase project URL and anon key (for .env.local)
-- [ ] Azure project endpoint and agent ID (for .env.local)
-- [ ] `az login` run in terminal
 

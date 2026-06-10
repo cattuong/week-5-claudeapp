@@ -49,6 +49,12 @@ Describe how each type of message is displayed:
 - If markdown is rendered: what library is used and what elements need custom styling
 - Any special rendering for code blocks, tables, links, etc.
 
+**Message Timestamps**
+- Whether each message shows a timestamp
+- Format (e.g. `HH:MM` using `toLocaleTimeString`)
+- Placement (below the message bubble, right-aligned for user / left-aligned for assistant)
+- Whether to show full date for messages older than today
+
 ---
 
 ## Message Bubble Styling
@@ -99,6 +105,16 @@ Describe what happens when a session is loaded:
 - When messages are cleared (must be immediately, before fetching)
 - What API is called to fetch history
 - How errors are surfaced to the user (never swallow them silently)
+
+---
+
+## Auto-Generated Session Titles
+If session titles are auto-generated from the first message:
+- When the rename triggers (after first successful AI response)
+- What the title is derived from (first N characters of the user's message)
+- Max length and truncation character (e.g. 55 chars + `…`)
+- Whether to skip rename if the session was already manually renamed
+- How the rename is persisted (PATCH /api/sessions/[id])
 
 ---
 

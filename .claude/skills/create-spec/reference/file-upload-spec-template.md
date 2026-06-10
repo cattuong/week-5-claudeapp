@@ -51,15 +51,42 @@ Choose one approach and document it:
 - File is sent as `multipart/form-data` via `FormData`
 - API route reads the file buffer, calls the parsing library, stores extracted text in the DB
 - The parsed text is later fetched separately (e.g. `GET /api/items/:id`) when needed for preview or AI context
-- Required: disable any worker/thread setup the library needs for the browser (e.g. `GlobalWorkerOptions.workerSrc = ''` for pdfjs-dist v4)
 
 **Parsing Libraries**
 For each supported file type, document:
 - The file extension
 - The library used to parse it
 - The method/API called
-- Any setup required (e.g. disabling worker for Node.js environments)
+- Any setup required (e.g. worker configuration for Node.js environments)
 - Whether to use the legacy build (relevant for SSR/webpack compatibility)
+
+**pdfjs-dist v4 — Node.js Worker Setup (CRITICAL)**
+
+`GlobalWorkerOptions.workerSrc = ''` does NOT work in pdfjs-dist v4. Setting it to an empty string causes:
+`Error: Setting up fake worker failed: "No 'GlobalWorkerOptions.workerSrc' specified."`
+
+The correct fix — point `workerSrc` to the bundled worker file on disk:
+
+```ts
+// In your Next.js API route (server-side only)
+const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
+const workerPath = require('path').join(
+  process.cwd(),
+  'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'
+)
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'file://' + workerPath
+const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise
+```
+
+Rules:
+- Always import from `pdfjs-dist/legacy/build/pdf.mjs` (not the main entry) — pdfjs explicitly recommends the legacy build for Node.js
+- Always set `workerSrc` to a `file://` absolute path using `process.cwd()` + the worker file path
+- Add `pdfjs-dist` to `serverExternalPackages` in `next.config.mjs` so it runs as native Node.js, not bundled by webpack:
+  ```js
+  // next.config.mjs
+  const nextConfig = { serverExternalPackages: ['pdfjs-dist'] }
+  ```
+- Font-loading warnings (`Unable to load font data`) are harmless — they affect visual rendering only, not text extraction (`getTextContent()` works correctly regardless)
 
 ---
 
@@ -71,13 +98,34 @@ List every component involved in file handling:
 
 ---
 
-## Content Preview
-If the app shows a preview of the file content after upload:
-- Where the content comes from (component state if client-parsed; API fetch if server-parsed)
-- Which component renders the preview and what props it receives
-- How different content types are rendered (plain text in `<pre>`, PDF in iframe, etc.)
-- When the preview fetch is triggered (in a `useEffect` keyed to the item ID)
-- What is shown while the content loads
+## Content Preview — CRITICAL
+Always spec the preview — if you don't specify it, it won't be built.
+
+**PDF preview**
+- Create a blob URL on the client before sending the file to the parse API: `URL.createObjectURL(file)`
+- Pass the URL up through the callback as `previewUrl`
+- Render the PDF in an `<iframe src={previewUrl}>` inside the right panel
+- Revoke the URL on error to avoid memory leaks: `URL.revokeObjectURL(previewUrl)`
+
+**DOCX preview**
+- No blob URL needed — show the extracted `contractText` in a scrollable `<pre>` tag
+- Use monospace font, `whitespace-pre-wrap`, truncate at ~4000 characters with "… (preview truncated)"
+
+**Where to render**
+- The preview lives in the right panel, above the Activity section
+- Right panel layout (when file loaded): `55%` height for preview, rest for Activity
+- Right panel layout (no file): Activity fills 100%
+
+**State flow** — the callback signature MUST include the preview data:
+```ts
+onFileLoaded: (text: string, filename: string, previewUrl: string, fileType: string) => void
+```
+- `text` — extracted contract text (sent to AI)
+- `filename` — displayed in the file chip and preview header
+- `previewUrl` — blob URL for PDF (`URL.createObjectURL(file)`), empty string for DOCX
+- `fileType` — `application/pdf` or DOCX MIME type (used to branch PDF vs text rendering)
+
+The dashboard page owns all four values as separate `useState` calls and passes a `contractPreview` object to the right panel.
 
 ---
 
@@ -86,7 +134,8 @@ Document where file state lives and why:
 - Which component owns the file content / filename state (must be a parent, not the input)
 - Why it cannot live in the input component (persistence across multiple interactions)
 - What the input component does with the file (calls a callback, holds no state)
-- What the callback signature is
+- The callback signature must include `previewUrl` and `fileType` — not just `text` and `filename`
+- The right panel receives `contractPreview: { url, type, filename } | null` and `contractText` as separate props
 
 ---
 
