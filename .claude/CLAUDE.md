@@ -37,5 +37,6 @@ Read these files before doing anything else:
 ## Before Starting Implementation
 
 Confirm these are ready:
-- [ ] Supabase project URL and anon key (for .env.local)
+- [ ] Supabase project URL and anon key (for .env)
+- [ ]  make sure all the cred should be .env file
 

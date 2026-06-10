@@ -1,150 +1,201 @@
 # Dashboard / Layout Spec Template
 
-Use this template to write the dashboard and layout spec for your app after planning.
-Each section below tells you what to document — replace all guidance text with
-real content from your app plan.
+Use this template to write the dashboard and layout spec for any app after planning.
+Replace all guidance text with real content from your app plan.
 
 ---
 
 ## Feature Name
-The name for this feature. Example: "Dashboard Layout" or "App Shell".
+Name this feature clearly. Example: "Dashboard Layout", "App Shell", "Home Screen".
 
 ---
 
 ## Description
 Describe:
-- The overall layout structure (how many panels, what each panel contains)
-- What the app shell includes (sidebar, header, content area, right panel)
-- What the main default view shows when nothing is selected
-- How the app transitions between different states (e.g. home view vs. active session)
+- The overall layout structure (how many panels, what each panel does)
+- What the app shell includes (sidebar, header, main content, right panel)
+- What the default view shows when nothing is selected (overview, stats, feed, empty state)
+- How the view transitions between states (e.g. list view → detail view, home → active item)
 
 ---
 
 ## Layout
-Draw a simple ASCII diagram or describe in words:
-- How many panels exist and their widths/proportions
-- What each panel contains
-- How panels change based on app state (e.g. right panel shows preview when file is loaded)
+
+Draw a simple ASCII diagram or describe in plain words:
+- How many panels or zones exist, their widths or proportions
+- What each zone contains at rest and when an item is active
+- Which zones are always visible vs. contextually shown
+
+Example structure (3-panel):
+```
+┌───────────────────────────────────────────────────┐
+│  Sidebar (fixed)  │  Main (flex-1)  │  Panel (fixed) │
+└───────────────────────────────────────────────────┘
+```
+
+Describe what changes in each zone when the user selects an item or takes an action.
 
 ---
 
 ## State Architecture
-Document what state lives at the dashboard level and why:
-- List every piece of shared state owned by the root dashboard component
-- Explain why each piece must live at the top level (which child components need it)
-- List the key callbacks that child components call to update this state
-- Describe the callback signatures and what each one does
+
+Document what state the root dashboard component owns and why it must live there:
+- List every piece of shared state (IDs, lists, loaded content, loading flags, etc.)
+- For each: which child components need it, and why it cannot live lower in the tree
+- List every callback child components call to update parent state
+- Note callback signatures and what each one triggers
 
 ---
 
-## Home / Default View (Dashboard)
-Describe what the user sees when no item is selected:
-- What content is shown (welcome message, stats, recent items, CTA buttons)
-- What each element does
-- What props this component receives
-- What it looks like in the empty/first-use state vs. with existing data
+## Home / Default View
 
-**KPI Cards**
-If the home view includes metric cards:
-- List every metric shown (total sessions, documents uploaded, AI queries, pinned chats, etc.)
-- Which metrics are computed client-side from already-loaded data
-- Which metrics require a separate API call (`GET /api/stats?userId=`)
-- How the stats API response shape looks
-- What is shown while stats are loading (keep the value `0` or show a skeleton)
-- How the grid is laid out (e.g. 3-column grid, responsive)
+Describe what the user sees when no item is selected or the app first loads.
 
-**Recent Activity Feed**
-If the home view includes a chronological event timeline:
-- What event types appear (chat started, contract uploaded, query executed, etc.)
-- Where the events come from (derived from sessions/messages data, or a dedicated activity table)
-- How events are sorted and capped (e.g. last 10 events, sorted by timestamp desc)
-- What each item shows: icon, label, relative timestamp
+### KPI / Metric Cards (if applicable)
+If the home view shows summary metrics:
+- List every metric to display (total items, today's count, weekly activity, status breakdowns, etc.)
+- For each metric: where the data comes from (which table/field), how it is calculated
+- Single API call vs. derived from already-loaded data — document the choice
+- Loading state: skeleton placeholders (same dimensions as the value) while fetching
+- Error state: show `--` and a muted sub-label when the API call fails
+- Card layout: describe the grid (e.g. 3-column, responsive to 2 on tablet, 1 on mobile)
+- Card anatomy: label, primary value, optional sub-label or trend indicator
+
+### Recent Activity Feed (if applicable)
+If the home view shows a chronological event timeline:
+- List every event type that appears (item created, action taken, status changed, export generated, etc.)
+- For each: the icon to use, the label format, what data it references
+- Data source: derived from existing tables (list which) or a dedicated activity table
+- Sort order and cap (e.g. most recent 20 events)
+- Each row: icon, label text, relative timestamp
+- Relative time format: "just now", "Xm ago", "Xh ago", "yesterday", full date fallback
+- Empty state: what to show when there are no events yet
 
 ---
 
 ## Sidebar
-Describe the sidebar in full detail:
-- Width and background style
-- Every element it contains (logo, search, filter tabs, session list, user footer)
-- How the active/selected item is visually indicated
-- How the item list behaves (scrollable, truncation, timestamps)
-- What the user footer contains (email, logout)
-- What logout does (what it clears, where it redirects)
-- What props the sidebar component receives
 
-**Search**
-- Where the search input appears (above or below the New Chat button)
-- What it searches (session titles only, or also filenames)
-- Whether search is client-side (filter already-loaded sessions) or server-side
+Document every element the sidebar contains, top to bottom:
+- Logo / app name area
+- Primary action button (e.g. New Item, Compose, Create)
+- Search input (if present — see Search section below)
+- Filter or navigation tabs (if present — see Filter Tabs section)
+- Item list (scrollable — see Item List section)
+- User footer (profile, settings, logout)
+
+**Width and background:** document the exact values.
+
+### Search (if applicable)
+- Where the input appears relative to the item list
+- What it searches: titles only, or all fields
+- Whether search is client-side (filter already-loaded data) or server-side
+- Does search compose with active filter? (Usually yes — document clearly)
 - What is shown when no results match
 
-**Filter Tabs**
-- List every filter option (All, Pinned, Recent, etc.)
-- What each filter does (e.g. Recent = sessions from last 7 days)
-- Whether filters and search compose (both applied simultaneously)
-- Default active filter on load
+### Filter Tabs (if applicable)
+List every filter option and what it does:
+| Tab label | Filter logic (plain English) |
+|---|---|
+| All | no filter applied |
+| [Tab 2] | [what condition this matches] |
+| [Tab 3] | [what condition this matches] |
+| ... | ... |
 
-**Session Item Actions**
-Each item in the session list should support:
-- **Pin / Unpin**: persists to DB via PATCH /api/sessions/[id]; pinned items sort to top; show a small dot indicator when pinned
-- **Rename**: inline edit — clicking Rename replaces the title with an `<input>`, Enter/blur saves it; PATCH /api/sessions/[id] with `{ title }`
-- **Delete**: DELETE /api/sessions/[id]; removes from local state; if the deleted session was active, clear the center panel
-- Actions appear on hover via a 3-dot `MoreHorizontal` icon button; clicking opens a dropdown menu
-- Dropdown items: Pin/Unpin, Rename, (divider), Delete (in error color)
+- Default active tab on load
+- Active tab visual style vs. inactive style
+- Whether filter and search compose (applied simultaneously)
 
-**Notes / Planning Panel (if applicable)**
-Remove this section if your sidebar has no notes panel.
+### Item List
+Describe each row in the item list:
+- Height, padding, border-radius
+- Left indicator (status icon, avatar, color dot, etc.) and what it represents
+- Primary text (truncated title, name, etc.)
+- Secondary text (timestamp, count, status label — placement and format)
+- Active / selected state visual treatment
+- Sort order (e.g. pinned first, then by last-updated descending)
+
+**Status icons (if applicable):** document the mapping from status value to icon and color.
+
+**Special indicators (if applicable):** e.g. pin dot, unread badge, attachment icon — position and meaning.
+
+### Item Context Menu (if applicable)
+If items have a right-click or hover menu:
+- What triggers it (hover button, right-click, long-press)
+- Every action it contains: label, icon, API call, effect on local state
+- Destructive actions: visual treatment (error color), confirmation if needed
+- How the menu closes (outside click, Escape, action taken)
+
+### User Footer
+- What is shown: display name, email, avatar
+- Actions available: settings link, logout
+- What logout does: what it clears (localStorage, cookies), where it redirects
 
 ---
 
 ## Right Panel (if applicable)
+
 If your layout has a right panel:
-- What it shows in each state (e.g. metadata + content preview when item loaded, empty prompt otherwise)
-- What props it receives (item metadata, fetched content, loading state)
-- How its content changes dynamically as the user selects different items
+- Width and background
+- What it shows in each state (empty vs. item selected vs. file loaded)
+- What props it receives
+- How it is divided into sections (e.g. preview section above, metadata section below)
 
 **Content Preview (if applicable)**
-Always spec this section even if you're unsure — omitting it means preview never gets built.
+- What content types can be previewed (PDF, image, text, video, etc.)
+- How each type is rendered (iframe, canvas, img, pre, etc.)
+- What proportion of the panel height the preview takes
+- What is shown while loading (skeleton, spinner)
+- What is shown when no content is available
 
-- Where the preview data comes from:
-  - PDF: `URL.createObjectURL(file)` blob URL created on the client before parsing
-  - DOCX: the extracted `contractText` string already in state (no blob URL needed)
-- What props the right panel receives:
-  - `contractPreview: { url: string; type: string; filename: string } | null`
-  - `contractText?: string` — for DOCX text rendering
-- How to render based on type:
-  - PDF (`application/pdf`): `<iframe src={contractPreview.url}>` — browser native viewer
-  - DOCX: scrollable `<pre>` with `contractText`, truncated at ~4000 chars
-- Layout inside the right panel:
-  - When a file is loaded: document preview takes ~55% of height, Activity section below
-  - When no file: Activity fills the full panel
-- What is shown while loading (skeleton, spinner, empty div)
-- What is shown when the content is null (just "Waiting for activity…" in Activity section)
-
-Remove this section if your layout has no right panel.
+**Activity / Steps (if applicable)**
+- What the secondary section shows (execution steps, metadata, related items, etc.)
+- Empty state text
 
 ---
 
-## Center Panel Switching
-Describe how the center content area switches between views:
-- What condition determines which view is shown
-- What component renders in each case
-- What props each component receives
-- What state is cleared or reset when switching views
+## Database Changes Required (if applicable)
+
+If new columns or tables are needed to support this feature, document:
+- The exact SQL to add each column or create each table
+- Any triggers or functions needed (e.g. auto-updating timestamps)
+- Any indexes needed for performance
+
+---
+
+## API Routes
+
+Document every API route this feature adds or modifies:
+
+### `GET /api/[resource]?[params]`
+Purpose, params, response shape.
+
+### `POST /api/[resource]`
+Purpose, request body, response shape.
+
+### `PATCH /api/[resource]/[id]`
+Which fields can be updated, response shape.
+
+### `DELETE /api/[resource]/[id]`
+What is deleted (and cascades if applicable), response shape.
 
 ---
 
 ## Components
-List every component that makes up the layout:
-- Component name and file path
-- What it is responsible for
-- What props it receives (just the names and types, not full interfaces)
+
+List every new component this feature requires:
+
+| Component | File | Responsibility | Key props |
+|---|---|---|---|
+| [Name] | components/[Name].tsx | What it renders | prop1, prop2 |
 
 ---
 
 ## Edge Cases
-Cover the important layout edge cases:
-- What shows when there is no data yet (empty state)
-- What happens when data fails to load
-- What happens when the user switches between items rapidly
-- How titles/labels update dynamically
+
+Cover the important ones — tailor to your feature:
+- Empty state: no items, no data — what does the user see?
+- Load failure: API errors — how are they surfaced?
+- Destructive action on the active item — what happens to the active view?
+- Invalid input (e.g. empty rename, out-of-range value) — how is it rejected?
+- Filter + search with zero results — what is shown?
+- Rapid switching between items — how is stale data avoided?

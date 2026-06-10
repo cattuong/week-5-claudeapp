@@ -1,165 +1,164 @@
 # File Upload Spec Template
 
-Use this template to write the file upload spec for your app after planning.
-Each section below tells you what to document — replace all guidance text with
-real content from your app plan.
+Use this template to write the file upload spec for any app after planning.
+Replace all guidance text with real content from your app plan.
 
 ---
 
 ## Feature Name
-The name for this feature. Example: "File Upload" or "Document Attachment".
+Name this feature clearly. Example: "File Upload", "Document Attachment", "Media Upload", "Asset Import".
 
 ---
 
 ## Description
 Describe:
 - What file types the app accepts
-- What happens to the file (parsed to text, stored, previewed, sent to a service)
-- Where parsing happens (client-side vs. server-side)
-- Whether the raw file or only the extracted content is sent to the backend
+- What happens to the file after upload (stored, parsed, previewed, sent to a service, analyzed)
+- Where processing happens (client-side in the browser vs. server-side in an API route)
+- Whether the raw file or only extracted/processed content is sent to the backend
+- Whether the file persists (stored in object storage, DB) or is session-only (in component state)
 
 ---
 
 ## User Flow
 Document every step the user takes:
-- How the upload is triggered (button, drag and drop, paperclip icon)
-- What the file picker accepts
-- What happens immediately after file selection (parsing, preview, feedback)
-- What UI updates to confirm the file is ready
-- How the file content is used in the next action (e.g. sent with a message)
-- What happens after that action (e.g. file cleared, persisted, available for further use)
+- How upload is triggered (button, drag and drop, paperclip icon, paste)
+- What the file picker accepts (file extensions, MIME types)
+- What happens immediately after file selection (progress indicator, parsing, preview)
+- What UI confirms the file is ready (chip, thumbnail, filename label)
+- How the file content is used in the next action (sent with a form, attached to a message, etc.)
+- How the user removes or replaces the file (dismiss button, re-select)
+- What happens after the main action (file cleared, kept for reuse, versioned)
 
 ---
 
 ## How Content Reaches the Backend
-Describe precisely how parsed content is transmitted:
-- Is it sent as part of a message body, as a separate field, as system-level context?
-- What field name is used in the request body
-- Any important distinction between user-visible message content and system context
+Describe precisely how the file or its content is transmitted:
+- Raw file: sent as `multipart/form-data` — document the field name
+- Extracted text: sent as a JSON string field — document the field name and max length
+- Blob/base64: when used and why
+- What value is sent when no file is attached (empty string, null, omit the field)
 
 ---
 
-## Parsing Strategy — Client-side vs Server-side
-Choose one approach and document it:
+## Parsing Strategy
 
-**Client-side parsing** — file parsed in the browser before upload:
-- Which library parses which format (e.g. pdfjs-dist for PDF, mammoth for DOCX)
-- How the parsed text is stored in component state
-- What is sent to the backend (only the extracted text string, not the raw file)
+**Client-side parsing** (file parsed in the browser before upload):
+- List each file type and the library used to parse it
+- Where parsed content is stored (component state — never persisted unless explicitly needed)
+- What is sent to the backend (the extracted content string, not the raw file)
 
-**Server-side parsing** — raw file sent to the API route, parsed there:
-- File is sent as `multipart/form-data` via `FormData`
-- API route reads the file buffer, calls the parsing library, stores extracted text in the DB
-- The parsed text is later fetched separately (e.g. `GET /api/items/:id`) when needed for preview or AI context
+**Server-side parsing** (raw file sent to the API, parsed there):
+- File is sent as `multipart/form-data`
+- API route reads the buffer, calls the parsing library
+- Parsed content stored in the database or returned to the client
 
 **Parsing Libraries**
 For each supported file type, document:
-- The file extension
-- The library used to parse it
-- The method/API called
-- Any setup required (e.g. worker configuration for Node.js environments)
-- Whether to use the legacy build (relevant for SSR/webpack compatibility)
+- File extension and MIME type
+- Library name and import path
+- Key method called and its return value
+- Any setup required (worker config, external binary, env var, etc.)
+- Known gotchas (e.g. worker path, legacy build requirement, SSR incompatibility)
 
-**pdfjs-dist v4 — Node.js Worker Setup (CRITICAL)**
+**pdfjs-dist v4 — Browser Setup Note**
+If parsing PDFs in the browser with pdfjs-dist v4:
+- Copy `node_modules/pdfjs-dist/build/pdf.worker.min.mjs` to `/public/pdf.worker.min.mjs`
+- Set `GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'` (must be a public URL)
+- Add `pdfjs-dist` to `serverComponentsExternalPackages` in `next.config.mjs`
+- Font-loading warnings in the console are harmless — text extraction works regardless
 
-`GlobalWorkerOptions.workerSrc = ''` does NOT work in pdfjs-dist v4. Setting it to an empty string causes:
-`Error: Setting up fake worker failed: "No 'GlobalWorkerOptions.workerSrc' specified."`
-
-The correct fix — point `workerSrc` to the bundled worker file on disk:
-
-```ts
-// In your Next.js API route (server-side only)
-const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs')
-const workerPath = require('path').join(
-  process.cwd(),
-  'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'
-)
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'file://' + workerPath
-const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise
-```
-
-Rules:
-- Always import from `pdfjs-dist/legacy/build/pdf.mjs` (not the main entry) — pdfjs explicitly recommends the legacy build for Node.js
-- Always set `workerSrc` to a `file://` absolute path using `process.cwd()` + the worker file path
-- Add `pdfjs-dist` to `serverExternalPackages` in `next.config.mjs` so it runs as native Node.js, not bundled by webpack:
-  ```js
-  // next.config.mjs
-  const nextConfig = { serverExternalPackages: ['pdfjs-dist'] }
-  ```
-- Font-loading warnings (`Unable to load font data`) are harmless — they affect visual rendering only, not text extraction (`getTextContent()` works correctly regardless)
+**pdfjs-dist v4 — Node.js (Server-side) Setup Note**
+If parsing PDFs on the server:
+- Import from `pdfjs-dist/legacy/build/pdf.mjs`
+- Set `workerSrc` to a `file://` path: `'file://' + path.join(process.cwd(), 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')`
 
 ---
 
-## Components
-List every component involved in file handling:
-- Upload trigger component — what it does, what callback it calls, what state it holds (should be none)
-- Preview component — what it shows, how it renders different file types
-- Any shared utility file (e.g. lib/parse.ts) and the functions it exports
+## Content Preview
 
----
+Always spec the preview — if you don't specify it here, it won't be built.
 
-## Content Preview — CRITICAL
-Always spec the preview — if you don't specify it, it won't be built.
+For each file type the app accepts, document:
+- How the preview is rendered (iframe, canvas, img tag, pre tag, custom component)
+- Where the preview data comes from (blob URL, extracted text, server-rendered URL)
+- Where the preview is displayed (right panel, modal, inline below upload button, etc.)
 
 **PDF preview**
-- Create a blob URL on the client before sending the file to the parse API: `URL.createObjectURL(file)`
-- Pass the URL up through the callback as `previewUrl`
-- Render the PDF in an `<iframe src={previewUrl}>` inside the right panel
-- Revoke the URL on error to avoid memory leaks: `URL.revokeObjectURL(previewUrl)`
+- Create a blob URL before parsing: `URL.createObjectURL(file)`
+- Pass the blob URL through the callback alongside the extracted text
+- For a simple inline preview: render in an `<iframe src={blobUrl}>`
+- For a full interactive viewer (page navigation, zoom): build a dedicated PDFViewer component
+  - PDFViewer uses `pdfjs-dist` to render each page to a `<canvas>` element
+  - Controls: previous/next page, page number input, zoom in/out, fit-to-width, download
+  - Zoom: steps of 25%, range 50–300%
+  - State the component owns: `currentPage`, `totalPages`, `zoom`, `isRendering`
+  - Props it receives: `blobUrl`, `filename`
+- Revoke the blob URL when the file is removed: `URL.revokeObjectURL(blobUrl)`
 
-**DOCX preview**
-- No blob URL needed — show the extracted `contractText` in a scrollable `<pre>` tag
-- Use monospace font, `whitespace-pre-wrap`, truncate at ~4000 characters with "… (preview truncated)"
+**Image preview**
+- Create blob URL: `URL.createObjectURL(file)`
+- Render: `<img src={blobUrl} alt={filename} />`
+- Revoke on removal
 
-**Where to render**
-- The preview lives in the right panel, above the Activity section
-- Right panel layout (when file loaded): `55%` height for preview, rest for Activity
-- Right panel layout (no file): Activity fills 100%
+**Text / CSV / JSON preview**
+- Read with `FileReader.readAsText(file)`
+- Render in a scrollable `<pre>` with monospace font
+- Truncate at a reasonable character limit (e.g. 4000 chars) with "… (preview truncated)" appended
 
-**State flow** — the callback signature MUST include the preview data:
-```ts
-onFileLoaded: (text: string, filename: string, previewUrl: string, fileType: string) => void
-```
-- `text` — extracted contract text (sent to AI)
-- `filename` — displayed in the file chip and preview header
-- `previewUrl` — blob URL for PDF (`URL.createObjectURL(file)`), empty string for DOCX
-- `fileType` — `application/pdf` or DOCX MIME type (used to branch PDF vs text rendering)
+**Document (DOCX, etc.) preview**
+- Extract text client-side (e.g. mammoth for DOCX)
+- Render extracted text in a scrollable `<pre>` with monospace font
+- Truncate at 4000 chars with truncation notice
 
-The dashboard page owns all four values as separate `useState` calls and passes a `contractPreview` object to the right panel.
+**Where the preview lives in the layout**
+- Describe which panel or section displays the preview
+- How much space it occupies (fixed height, percentage, flex)
+- Whether it persists while the user takes other actions (e.g. while chatting, filling a form)
 
 ---
 
 ## State Architecture — CRITICAL
-Document where file state lives and why:
-- Which component owns the file content / filename state (must be a parent, not the input)
-- Why it cannot live in the input component (persistence across multiple interactions)
-- What the input component does with the file (calls a callback, holds no state)
-- The callback signature must include `previewUrl` and `fileType` — not just `text` and `filename`
-- The right panel receives `contractPreview: { url, type, filename } | null` and `contractText` as separate props
+
+Document where file state lives and why it must live there:
+- Which component OWNS the file content, filename, preview URL, and file type (must be a parent)
+- Why it cannot live inside the file input component (other parts of the UI need the content)
+- What the file input component does with the file (calls a callback, holds no state)
+
+**Callback signature** — document it fully:
+```
+onFileLoaded(text, filename, previewUrl, fileType)
+```
+- `text` — extracted content sent to the backend
+- `filename` — displayed in the UI chip and preview header
+- `previewUrl` — blob URL for previewable types; empty string otherwise
+- `fileType` — MIME type, used to choose the right preview renderer
+
+The parent component owns all four values and passes a structured preview object to the preview component.
 
 ---
 
 ## API Contract
-Document how file content is included in API requests:
-- The route it is sent to
-- The field name and type in the request body (`FormData` for raw file; JSON string for pre-parsed text)
-- What value is sent when no file is attached (e.g. empty string)
-- Any server-side logging to verify content is arriving
+- Route the file content is sent to
+- Field name and type in the request body
+- Max content size sent (truncation point if needed)
+- Behavior when no file is attached (what value is sent)
 
 ---
 
 ## Validation
-Document all client-side checks before parsing begins:
-- Accepted file types and the error shown for rejected types
-- Maximum file size and the error shown when exceeded
-- Parse error handling and the message shown to the user
+Document all checks before processing begins:
+- Accepted file types — error message for rejected types
+- Maximum file size — error message when exceeded
+- Parse failure — what the user sees, whether it blocks other actions
 
 ---
 
 ## Edge Cases
 Cover every file handling edge case:
-- User removes the file after attaching
-- Parse fails partway through
-- File is larger than the backend can process (truncation strategy)
-- User sends without attaching a file
-- User attaches a second file (replacement behavior)
+- User removes the file after attaching (revoke blob URL, clear all file state)
+- Parse fails mid-way (show error, do not block other app functionality)
+- File content exceeds the backend's processing limit (truncate with a documented cutoff)
+- User attaches a second file (replace the previous one, revoke the old blob URL first)
+- User submits without attaching a file (send without file content — document expected behavior)
+- File with no extractable content (empty PDF, protected document) — what is shown
