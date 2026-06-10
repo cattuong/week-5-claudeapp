@@ -34,14 +34,6 @@ week-5-claudeapp/
     │   ├── design-system.md        # Colors, fonts, spacing, component styles
     │   └── azure-endpoint.md       # Azure AI client setup details
     │
-    ├── specs/                      # Feature specs (what to build per area)
-    │   ├── auth.md
-    │   ├── chat.md
-    │   ├── dashboard.md
-    │   ├── database.md
-    │   ├── file-upload.md
-    │   └── feedback.md
-    │
     └── skills/                     # Custom Claude Code skill scripts
         ├── rules/rules.md          # Tech stack rules and hard constraints
         ├── implementation/         # Step-by-step build instructions
