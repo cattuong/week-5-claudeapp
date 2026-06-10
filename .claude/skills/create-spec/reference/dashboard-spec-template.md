@@ -56,13 +56,32 @@ Describe the sidebar in full detail:
 - What logout does (what it clears, where it redirects)
 - What props the sidebar component receives
 
+**Notes / Planning Panel (if applicable)**
+If the sidebar includes a per-item notes or planning area:
+- What triggers it to appear (e.g. only when an item is selected)
+- Whether it is collapsible and how the toggle works
+- Where the content is persisted (localStorage keyed by item ID, or database)
+- What the key format is (e.g. `appname_notes_<itemId>`)
+- What happens to the notes when the user switches to a different item
+- What placeholder text guides the user on what to write there
+
+Remove the Notes subsection if your sidebar has no notes panel.
+
 ---
 
 ## Right Panel (if applicable)
 If your layout has a right panel:
-- What it shows in each state (e.g. preview when file loaded, tracker when empty)
-- What props it receives
-- How its content changes dynamically
+- What it shows in each state (e.g. metadata + content preview when item loaded, empty prompt otherwise)
+- What props it receives (item metadata, fetched content, loading state)
+- How its content changes dynamically as the user selects different items
+
+**Content Preview (if applicable)**
+If the right panel shows a text or file preview of the selected item:
+- What API route is called to fetch the content (e.g. `GET /api/items/:id`)
+- When the fetch is triggered (on item selection, in a `useEffect` keyed to the item ID)
+- How the content is rendered (scrollable `<pre>` for plain text, iframe for PDFs, etc.)
+- What is shown while loading (skeleton, spinner, empty div)
+- What is shown when the content is null or missing
 
 Remove this section if your layout has no right panel.
 

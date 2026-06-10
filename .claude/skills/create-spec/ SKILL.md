@@ -48,8 +48,8 @@ For each feature:
 1. Pick the closest matching template from the reference folder as a
    structural guide (auth → auth-spec-template, database → database-spec-template,
    dashboard/layout → dashboard-spec-template, chat/messaging →
-   chat-spec-template, AI/external API → ai-integration-spec-template,
-   file handling → file-upload-spec-template, feedback → feedback-spec-template).
+   chat-spec-template, file handling → file-upload-spec-template,
+   feedback → feedback-spec-template).
    For features with no close match, use the closest template as a structural
    reference and adapt the sections to fit.
 2. Generate one spec file in /specs/ named after the feature
@@ -64,11 +64,31 @@ Do not assume a fixed set of features.
 
 ---
 
-## Step 4 — Confirm Completion
+## Step 4 — Create .env.local Template
+
+Scan every spec file just generated and collect all environment variables
+mentioned across all of them (database credentials, API keys, endpoints,
+auth secrets, etc.).
+
+Create a `.env.local` file in the project root that:
+- Groups variables by feature area using comments (e.g. # Database, # Auth, # API)
+- Lists every variable name with an empty value (e.g. VARIABLE_NAME=)
+- Adds a one-line comment above each variable explaining what value goes there
+  and where the developer can find it
+- Never hardcodes any real credentials — values stay empty
+
+If a `.env.local` already exists, do not overwrite it. Instead tell the user
+which variables are missing from their existing file.
+
+---
+
+## Step 5 — Confirm Completion
 
 Tell the user:
 All spec files have been generated in /specs based on /blueprint/app-plan.md.
-List the files created. Then say: Ready for implementation planning.
+A .env.local template has been created in the project root — fill in the values
+before starting the dev server.
+List the spec files created. Then say: Ready for implementation planning.
 Say "use planning skill" to continue.
 
 ---

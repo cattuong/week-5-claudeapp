@@ -39,13 +39,27 @@ Describe precisely how parsed content is transmitted:
 
 ---
 
-## Parsing Libraries
+## Parsing Strategy — Client-side vs Server-side
+Choose one approach and document it:
+
+**Client-side parsing** — file parsed in the browser before upload:
+- Which library parses which format (e.g. pdfjs-dist for PDF, mammoth for DOCX)
+- How the parsed text is stored in component state
+- What is sent to the backend (only the extracted text string, not the raw file)
+
+**Server-side parsing** — raw file sent to the API route, parsed there:
+- File is sent as `multipart/form-data` via `FormData`
+- API route reads the file buffer, calls the parsing library, stores extracted text in the DB
+- The parsed text is later fetched separately (e.g. `GET /api/items/:id`) when needed for preview or AI context
+- Required: disable any worker/thread setup the library needs for the browser (e.g. `GlobalWorkerOptions.workerSrc = ''` for pdfjs-dist v4)
+
+**Parsing Libraries**
 For each supported file type, document:
 - The file extension
 - The library used to parse it
 - The method/API called
-- Any setup required before calling the parser (e.g. worker configuration)
-- Whether to use dynamic import or static import (note SSR/webpack considerations)
+- Any setup required (e.g. disabling worker for Node.js environments)
+- Whether to use the legacy build (relevant for SSR/webpack compatibility)
 
 ---
 
@@ -53,22 +67,23 @@ For each supported file type, document:
 List every component involved in file handling:
 - Upload trigger component — what it does, what callback it calls, what state it holds (should be none)
 - Preview component — what it shows, how it renders different file types
-- Any shared utility file (e.g. lib/parsers.ts) and the functions it exports
+- Any shared utility file (e.g. lib/parse.ts) and the functions it exports
 
 ---
 
-## Visual Preview
-If the app shows a preview of the uploaded file:
-- How the preview URL is created (e.g. blob URL from the File object)
-- Which component creates it and which displays it
-- How different file types are previewed differently (e.g. PDF in iframe, DOCX as text)
-- Memory management: when to revoke blob URLs and where that code lives
+## Content Preview
+If the app shows a preview of the file content after upload:
+- Where the content comes from (component state if client-parsed; API fetch if server-parsed)
+- Which component renders the preview and what props it receives
+- How different content types are rendered (plain text in `<pre>`, PDF in iframe, etc.)
+- When the preview fetch is triggered (in a `useEffect` keyed to the item ID)
+- What is shown while the content loads
 
 ---
 
 ## State Architecture — CRITICAL
 Document where file state lives and why:
-- Which component owns the file content and filename state (must be a parent, not the input)
+- Which component owns the file content / filename state (must be a parent, not the input)
 - Why it cannot live in the input component (persistence across multiple interactions)
 - What the input component does with the file (calls a callback, holds no state)
 - What the callback signature is
@@ -78,7 +93,7 @@ Document where file state lives and why:
 ## API Contract
 Document how file content is included in API requests:
 - The route it is sent to
-- The field name and type in the request body
+- The field name and type in the request body (`FormData` for raw file; JSON string for pre-parsed text)
 - What value is sent when no file is attached (e.g. empty string)
 - Any server-side logging to verify content is arriving
 
