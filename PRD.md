@@ -81,47 +81,25 @@ The app has four distinct page types:
 
 Landing page → Sign up / Log in → Dashboard → New Chat → Upload Document → Ask Question → Receive AI Response → Submit Feedback → Return to Dashboard
 
----
+### Technology User Flow
 
-## 3. Page Specifications
+How the tech stack serves each step of the user journey:
 
-### 3.1 Landing Page (`/`)
-
-The landing page is the public-facing entry point. It communicates the product value proposition and drives signups.
-
-**Sections:**
-- **Hero:** Headline, sub-headline, primary CTA ("Get started free"), secondary CTA ("See how it works")
-- **How it works:** 3-step visual (Upload document → Ask questions → Get instant answers)
-- **Features:** Key capabilities (AI chat, document preview, session history, feedback loop)
-- **Social proof:** Placeholder for testimonials / usage stats post-launch
-- **Pricing:** Plan cards (Free trial, Starter, Growth, Pro)
-- **Footer:** Links to privacy policy, terms, contact
-
-**Behaviour:**
-- If user is already logged in (`userId` in localStorage) → redirect to `/dashboard`
-- "Get started free" → `/signup`
-- "Sign in" in nav → `/login`
+| User step | What happens | Technology |
+|---|---|---|
+| Opens the app | Page is served with routing and API support | Next.js 14 (App Router) + TypeScript |
+| Signs up / logs in | Password hashed and stored; user ID saved to localStorage | bcryptjs + Supabase (PostgreSQL) |
+| Views dashboard | KPIs and activity feed queried from database | Supabase JS SDK |
+| Uploads a PDF | File parsed client-side into plain text | pdfjs-dist |
+| Uploads a DOCX | File parsed client-side into plain text | mammoth |
+| Asks a question | Text sent to server route; Azure called server-side only | Next.js API Route → Azure OpenAI GPT-4o |
+| Receives AI response | Response returned and rendered in chat | Azure OpenAI GPT-4o → Next.js API Route |
+| Submits feedback | Rating and comment saved to database | Supabase (PostgreSQL) |
+| App is deployed | Hosted with zero-config deployment | Vercel |
 
 ---
 
-### 3.2 Auth Pages
 
-#### `/signup` — Create account
-- Light mode, centered card, max-width 400px
-- Serif heading: "Create your account"
-- Fields: Email, Password
-- CTA: "Create account" (full-width primary button)
-- Link: "Already have an account? Sign in" → `/login`
-- Error: red text below form (e.g. "An account with this email already exists")
-- On success: store `userId` + `userEmail` in localStorage → redirect to `/dashboard`
-
-#### `/login` — Sign in
-- Same layout as signup
-- Heading: "Welcome back"
-- CTA: "Sign in"
-- Link: "Don't have an account? Sign up" → `/signup`
-- Error: "Invalid email or password" (never reveal which field is wrong)
-- On success: store `userId` + `userEmail` → redirect to `/dashboard`
 
 ---
 
@@ -149,29 +127,7 @@ Display the following metrics in a card grid (3–4 columns, responsive):
 | Failed processing jobs | Count of sessions with error status | On session load |
 | Storage used | Total size of uploaded files (if persisted, v1.1) | On session load |
 
-Each KPI card:
-- Metric label (`text-body-sm text-an-fg-subtle`)
-- Value (`text-display font-medium text-an-fg-base`)
-- Optional delta vs. previous period (`text-caption text-an-success` or `text-an-error`)
-- Icon relevant to metric
 
-#### Recent Activity Feed
-
-A chronological timeline of the authenticated user's recent actions, shown below the KPI grid.
-
-**Event types displayed:**
-- Document uploaded — `"report.pdf uploaded"`
-- New chat started — `"New chat: [session title]"`
-- AI query executed — `"Asked: [first 60 chars of question]…"`
-- Document processed successfully — `"[filename] processed"`
-- Export downloaded — `"Session exported to PDF"` (v1.1)
-- Error occurred — `"Processing failed for [session title]"`
-
-**Layout:**
-- Chronological list, newest first
-- Each item: icon + event label + relative timestamp (`"2 hours ago"`, `"Yesterday"`)
-- Max 50 events shown; "Load more" link below
-- Empty state: "No recent activity yet. Start a new chat to get going."
 
 #### Dashboard Actions
 
@@ -180,139 +136,9 @@ A chronological timeline of the authenticated user's recent actions, shown below
 
 ---
 
-### 3.4 Chat Interface (`/chat` or `/dashboard/chat`)
-
-The main workspace. Three-panel layout.
-
-#### Layout
 
 ```
-┌──────────────────┬────────────────────────────────┬──────────────────────┐
-│  Sidebar 256px   │  Chat Area (flex-1)             │  Right Panel 304px   │
-│  bg-an-bg-subtle │  bg-an-bg-base                  │  bg-an-bg-subtle     │
-│                  │  max-w-[680px] centered          │                      │
-│  [App name]      │                                 │  Execution Steps     │
-│  [Search bar]    │  MessageList                    │  ─────────────────   │
-│  [Filter chips]  │    MessageBubble (user)         │  ● Parsing doc       │
-│  ─────────────   │    MessageBubble (assistant)    │  ↻ Sending to AI…   │
-│  📌 Pinned       │    FeedbackForm                 │  ✓ Response recv'd   │
-│    session 1     │  ─────────────────────────      │                      │
-│    session 2     │  Composer (pinned bottom)       │  Document Preview    │
-│  ─────────────   │    [filename chip ×]            │  [PDF viewer /pre]   │
-│  All chats       │    [textarea]  [▶ send]         │    Page 1 / 12       │
-│    session 3     │    [📎 attach]                  │    [zoom] [fit] [⬇]  │
-│    session 4     │                                 │                      │
-│  ─────────────   │                                 │                      │
-│  user@email.com  │                                 │                      │
-│  [Log out]       │                                 │                      │
-└──────────────────┴────────────────────────────────┴──────────────────────┘
-```
 
-#### Sidebar — Session Management
-
-**Search:**
-- Search bar at top of sidebar
-- Filters sessions by title in real time (client-side, no API call)
-- Clears with ✕ button
-
-**Filter chips** (horizontal scroll below search):
-- All | Pinned | Recent | Processing | Completed | Error
-
-**Pinned section** (shown when ≥1 chat is pinned):
-- Heading "Pinned" (`text-caption text-an-fg-muted uppercase`)
-- Pinned sessions listed first, separated from the rest by a divider
-
-**Session list item:**
-- Height 44px (increased from 36px to accommodate metadata)
-- Title: AI-generated from first user message (first 55 chars + `…`) — `text-body-sm text-an-fg-base` truncated
-- Created timestamp: `text-caption text-an-fg-muted` (e.g. `Jun 10, 14:32`)
-- Last updated: relative time (`"2h ago"`) — `text-caption text-an-fg-muted`
-- Status icon (right side, 14px):
-  - `running` → `Loader2` coral spin
-  - `completed` → `CheckCircle` green
-  - `error` → `AlertCircle` red
-  - `idle` → no icon
-- Right-click or `…` menu on hover:
-  - **Pin / Unpin** — moves session to/from pinned section
-  - **Rename** — inline text edit, confirmed with Enter
-  - **Delete** — confirmation dialog before deletion
-
-**New Chat button:**
-- Full-width, coral accent, `Plus` icon, at top above search bar
-
-#### Centre Panel — Chat Area
-
-**Empty state** (no active session):
-- Centered: app logo + "Start a new conversation" heading + "New Chat" CTA button
-
-**Active session:**
-
-_MessageList:_
-- All messages for the active session, newest at bottom
-- Infinite scroll upward to load older messages (25 at a time)
-- Auto-scrolls to bottom on new message
-- Each message: `MessageBubble` + timestamp
-
-_MessageBubble — User:_
-- Right-aligned, `max-w-[75%]`
-- Background: `bg-an-accent-subtle`, border: `1px solid rgba(217,119,87,0.20)`
-- Border radius: `12px 12px 4px 12px`, padding: `12px 16px`
-- Timestamp below, right-aligned: `HH:MM` (full date if older than today)
-
-_MessageBubble — Assistant:_
-- Left-aligned, up to 680px container width
-- No bubble background — text directly on `bg-an-bg-base`
-- Prefix: 8px coral circle dot (`bg-an-accent rounded-full mt-1 shrink-0`)
-- Streaming: text appears token by token (v1.1; v1.0 shows full response at once)
-- Timestamp below, left-aligned
-
-_FeedbackForm_ (after every assistant bubble):
-- 5-star rating (required) + optional comment (max 200 chars, character counter shown)
-- Submit button — disabled until star selected
-- On submit: replaced by "Thanks for your feedback"
-- On error: inline error text, form stays open for retry
-- Each form is independent — keyed by message ID
-
-_Composer (pinned bottom):_
-- Textarea (auto-resize, 1–5 rows)
-- Enter to send; Shift+Enter for newline
-- Send button (`▶`) — disabled when empty or `isLoading`
-- Paperclip icon (`📎`) — triggers hidden `<input type="file" accept=".pdf,.docx">`
-- Filename chip above textarea when file loaded (shows name + `×` to dismiss)
-- Auto-saved: every user message triggers a Supabase write before the API call
-
-#### Right Panel — Execution Steps + Document Preview
-
-**Execution steps section:**
-
-Steps during a send cycle:
-
-| Step label | Status | Trigger |
-|---|---|---|
-| "Parsing document" | `completed` | After file parsed on load |
-| "Sending to AI…" | `running` | POST /api/chat starts |
-| "Waiting for response…" | `running` | Replaces above |
-| "Response received" | `completed` | Response arrives |
-| "Error" | `error` | Non-200 from /api/chat |
-
-Empty state: "Waiting for activity…" (`text-caption text-an-fg-muted`)
-Reset to `[]` on New Chat.
-
-**Document preview section** (shown when file loaded):
-
-_PDF preview:_
-- `<iframe src={blobUrl}>` — `w-full h-56 rounded-md border border-an-border`
-- Controls bar below iframe:
-  - Page indicator: "Page 1 / 12"
-  - Zoom in (+), Zoom out (−), Fit to width buttons
-  - Download button (if permitted by session settings)
-- Scrolling through all pages supported within the iframe
-- Preview persists while user chats — does not collapse on message send
-
-_DOCX preview:_
-- `<pre>` with first 4,000 chars of extracted text
-- `"… (preview truncated)"` appended if longer
-- `font-mono text-mono text-an-fg-subtle overflow-y-auto max-h-56 whitespace-pre-wrap`
 
 ---
 
@@ -372,134 +198,6 @@ _DOCX preview:_
 
 ## 5. Technical Requirements
 
-### Architecture Overview
-
-```
-[Browser (React + Next.js)]
-     │
-     ├── Landing page (public, /index)
-     ├── Auth pages (/signup, /login)
-     ├── Dashboard (/dashboard) — KPIs + activity feed
-     ├── Chat (/chat) — 3-panel layout
-     ├── File Upload → Text Extraction (client-side pdfjs-dist / mammoth)
-     └── Supabase JS SDK (read/write sessions, messages, feedback)
-
-[Next.js API Routes (server-side only)]
-     │
-     ├── POST /api/auth/signup
-     ├── POST /api/auth/login
-     ├── POST /api/chat          ← Azure AI call (NEVER from client)
-     ├── POST /api/sessions
-     ├── GET  /api/sessions/[id]/messages
-     ├── PATCH /api/sessions/[id]
-     ├── DELETE /api/sessions/[id]
-     ├── POST /api/messages
-     └── POST /api/feedback
-
-[Azure AI Agent]
-     └── Receives: system prompt + document text + conversation history + user question
-         Returns: full response with source references
-
-[Supabase (PostgreSQL)]
-     ├── users     (id, email, password_hash, created_at)
-     ├── sessions  (id, user_id, title, status, pinned, created_at, updated_at)
-     ├── messages  (id, session_id, role, content, created_at)
-     └── feedback  (id, user_id, session_id, rating, comment, created_at)
-```
-
-### Database Schema
-
-**`users`**
-| Column | Type | Notes |
-|---|---|---|
-| id | UUID | PK, `gen_random_uuid()` |
-| email | TEXT | Unique |
-| password_hash | TEXT | bcryptjs, 10 rounds |
-| created_at | TIMESTAMPTZ | `now()` |
-
-**`sessions`**
-| Column | Type | Notes |
-|---|---|---|
-| id | UUID | PK |
-| user_id | UUID | FK → users.id, cascade delete |
-| title | TEXT | AI-generated; first 55 chars of first user message |
-| status | TEXT | `'idle'`, `'processing'`, `'completed'`, `'error'` |
-| pinned | BOOLEAN | Default `false` |
-| created_at | TIMESTAMPTZ | — |
-| updated_at | TIMESTAMPTZ | Updated on every new message |
-
-**`messages`**
-| Column | Type | Notes |
-|---|---|---|
-| id | UUID | PK |
-| session_id | UUID | FK → sessions.id, cascade delete |
-| role | TEXT | `'user'` or `'assistant'` |
-| content | TEXT | Full message text |
-| created_at | TIMESTAMPTZ | — |
-
-**`feedback`**
-| Column | Type | Notes |
-|---|---|---|
-| id | UUID | PK |
-| user_id | UUID | FK → users.id, cascade delete |
-| session_id | UUID | FK → sessions.id, cascade delete |
-| rating | INTEGER | 1–5 |
-| comment | TEXT | Optional |
-| created_at | TIMESTAMPTZ | — |
-
-### Component Tree
-
-```
-app/
-├── page.tsx                      ← landing page (public)
-├── signup/page.tsx               ← signup form
-├── login/page.tsx                ← login form
-└── dashboard/
-    ├── layout.tsx                ← auth guard
-    ├── page.tsx                  ← dashboard: KPIs + activity feed
-    └── chat/
-        ├── layout.tsx            ← 3-panel shell
-        └── page.tsx              ← all shared chat state + callbacks
-
-components/
-├── landing/
-│   ├── Hero.tsx
-│   ├── HowItWorks.tsx
-│   ├── Features.tsx
-│   └── PricingCards.tsx
-├── dashboard/
-│   ├── KPICard.tsx
-│   └── ActivityFeed.tsx
-├── chat/
-│   ├── Sidebar.tsx               ← search, filters, pinned, session list, context menu
-│   ├── ChatArea.tsx              ← composer, file attach, wraps MessageList
-│   ├── MessageList.tsx           ← infinite scroll, maps messages
-│   ├── MessageBubble.tsx         ← user or assistant bubble
-│   ├── FeedbackForm.tsx          ← star rating + comment
-│   └── RightPanel.tsx            ← execution steps + document preview + PDF controls
-└── shared/
-    └── ConfirmDialog.tsx         ← reusable delete confirmation
-
-lib/
-├── supabase.ts                   ← single shared client
-├── db.ts                         ← all DB helpers
-└── parse-file.ts                 ← parseFile(file): Promise<string>
-```
-
-### Shared State (Chat page)
-
-| State | Type | Purpose |
-|---|---|---|
-| `userId` | `string` | From localStorage |
-| `userEmail` | `string` | Sidebar footer |
-| `sessions` | `Session[]` | Full list for sidebar |
-| `activeSessionId` | `string \| null` | Current session |
-| `messages` | `Message[]` | Loaded messages for active session |
-| `documentText` | `string` | Sent with every `/api/chat` request |
-| `documentFileName` | `string` | Filename chip display |
-| `documentPreview` | `{ url, type, filename } \| null` | Right panel preview |
-| `isLoading` | `boolean` | Composer disabled during AI request |
-| `steps` | `Step[]` | Right panel execution steps |
 
 ### Prompt Strategy
 
