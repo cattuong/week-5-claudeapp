@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ConfidentialClientApplication } from '@azure/msal-node'
 
+export const dynamic = 'force-dynamic'
+
 const msalConfig = {
   auth: {
     clientId: process.env.AZURE_CLIENT_ID!,

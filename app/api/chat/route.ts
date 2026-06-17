@@ -25,14 +25,12 @@ export async function POST(req: NextRequest) {
       ? `CONTRACT TEXT:\n${contractText}\n\nUSER QUESTION:\n${userMessage}`
       : userMessage
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const response = await (openai.responses.create as any)({
-      input: [{ role: 'user', content: combinedInput }],
+    const response = await openai.chat.completions.create({
+      model: 'LegalAid',
+      messages: [{ role: 'user', content: combinedInput }],
     })
 
-    const firstOutput = response.output?.find((o: { type: string }) => o.type === 'message')
-    const rawText = firstOutput?.content?.find((c: { type: string }) => c.type === 'output_text')?.text
-    assistantText = response.output_text ?? rawText ?? FALLBACK
+    assistantText = response.choices[0]?.message?.content ?? FALLBACK
   } catch (err: unknown) {
     console.error('Azure chat error:', err)
     const httpStatus = (err as { status?: number }).status ?? 0
