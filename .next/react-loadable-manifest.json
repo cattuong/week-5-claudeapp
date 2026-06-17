@@ -1,0 +1,14 @@
+{
+  "components/FileUpload.tsx -> mammoth": {
+    "id": "components/FileUpload.tsx -> mammoth",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_mammoth_lib_index_js.js"
+    ]
+  },
+  "components/FileUpload.tsx -> pdfjs-dist": {
+    "id": "components/FileUpload.tsx -> pdfjs-dist",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_pdfjs-dist_build_pdf_mjs.js"
+    ]
+  }
+}
