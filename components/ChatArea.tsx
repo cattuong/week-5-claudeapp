@@ -55,12 +55,7 @@ export default function ChatArea({
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <p className="text-an-fg-subtle text-[14px]">Select a conversation or start a new chat.</p>
-            {!isConnected && (
-              <a href="/api/auth/microsoft" className="inline-block mt-4 text-[13px] text-an-accent hover:underline">
-                Connect Microsoft account to use AI
-              </a>
-            )}
-          </div>
+            </div>
         </div>
       ) : (
         <>
